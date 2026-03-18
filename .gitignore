@@ -1,0 +1,32 @@
+# 环境变量
+.env.*
+
+# 虚拟环境
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# 日志
+logs/
+*.log
+
+# 数据库
+instance/
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Claude
+.claude/
