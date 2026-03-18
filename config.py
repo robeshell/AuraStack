@@ -3,6 +3,10 @@
 支持开发环境(development)和生产环境(production)
 """
 import os
+from dotenv import load_dotenv
+
+_env = os.environ.get('FLASK_ENV', 'development')
+load_dotenv(f'.env.{_env}')
 
 
 class Config:

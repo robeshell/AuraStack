@@ -6,6 +6,7 @@ from flask import Flask, jsonify, send_from_directory, request
 from flask_cors import CORS
 from flask_compress import Compress
 from flask_caching import Cache
+from flask_migrate import Migrate
 from config import get_config
 from backend import db
 from backend.models import init_models
@@ -53,6 +54,9 @@ db.init_app(app)
 # 在应用上下文中初始化模型
 with app.app_context():
     models = init_models(db)
+
+# 初始化数据库迁移
+migrate = Migrate(app, db)
 
 # 注册路由蓝图
 admin_bp = init_admin_routes(db, models)
