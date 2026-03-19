@@ -107,6 +107,7 @@ def main() -> int:
     compile_targets = [
         "app.py",
         "backend/models.py",
+        "backend/common/tabular.py",
         "backend/routes/admin/auth.py",
         "backend/routes/admin/users.py",
         "backend/routes/admin/roles.py",

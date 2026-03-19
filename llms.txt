@@ -10,6 +10,7 @@ Product managers provide only natural-language intent. Agents perform end-to-end
 - [Apifox Push Script](./scripts/import_openapi_to_apifox.py)
 - [RBAC Seed Script](./scripts/init_rbac_data.py)
 - [Feature Verification Script](./scripts/verify_feature.py)
+- [Semi MCP Skill](./.agents/skills/semi-ui-skills/SKILL.md)
 
 ## Backend Structure
 
@@ -20,6 +21,19 @@ Product managers provide only natural-language intent. Agents perform end-to-end
 - Menus: `backend/routes/admin/menus.py`
 - Logs: `backend/routes/admin/logs.py`
 - Models: `backend/models.py`
+
+## Tech Stack
+
+- Backend: Flask 3 + Flask-SQLAlchemy + PostgreSQL
+- Frontend: React 18 + Vite + React Router + Axios
+- UI: Semi Design
+- Import/Export: openpyxl/xlrd/xlwt
+
+## MCP Docs Rule
+
+- If MCP docs/skills are available for the task domain, read them first, then implement.
+- For UI components, prefer `semi-mcp` + `semi-design-guide` skill as first reference.
+- Keep final implementation aligned with existing project patterns.
 
 ## Frontend Structure
 
@@ -39,3 +53,4 @@ Any new module/feature should include:
 5. Migration script(s) when schema changes.
 6. OpenAPI JSON update and optional Apifox push.
 7. Build/compile verification.
+8. If import/export is implemented: follow the existing import/export pattern already used in this project.
