@@ -6,6 +6,7 @@ RBAC系统数据初始化脚本
 """
 import sys
 import os
+import argparse
 
 # 添加项目根目录到 Python 路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -87,6 +88,8 @@ def init_menus():
             'parent_id': 2, 'sort_order': 3, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
         {'id': 24, 'name': '日志管理', 'code': 'system_logs', 'icon': 'IconFile', 'path': '/system/logs', 'component': 'Logs',
             'parent_id': 2, 'sort_order': 4, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
+        {'id': 25, 'name': '数据字典', 'code': 'system_dicts', 'icon': 'IconList', 'path': '/system/dicts', 'component': 'Dicts',
+            'parent_id': 2, 'sort_order': 5, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
 
         # 用户管理按钮权限
         {'id': 211, 'name': '新增用户', 'code': 'system_users_add', 'icon': None, 'path': None, 'component': None,
@@ -115,17 +118,30 @@ def init_menus():
         # 日志管理按钮权限
         {'id': 241, 'name': '查看日志', 'code': 'system_logs_view', 'icon': None, 'path': None, 'component': None,
             'parent_id': 24, 'sort_order': 1, 'menu_type': 'button', 'is_visible': False, 'is_active': True},
+
+        # 数据字典按钮权限
+        {'id': 251, 'name': '新增字典', 'code': 'system_dicts_add', 'icon': None, 'path': None, 'component': None,
+            'parent_id': 25, 'sort_order': 1, 'menu_type': 'button', 'is_visible': False, 'is_active': True},
+        {'id': 252, 'name': '编辑字典', 'code': 'system_dicts_edit', 'icon': None, 'path': None, 'component': None,
+            'parent_id': 25, 'sort_order': 2, 'menu_type': 'button', 'is_visible': False, 'is_active': True},
+        {'id': 253, 'name': '删除字典', 'code': 'system_dicts_delete', 'icon': None, 'path': None, 'component': None,
+            'parent_id': 25, 'sort_order': 3, 'menu_type': 'button', 'is_visible': False, 'is_active': True},
     ]
 
     print("初始化菜单数据...")
 
-    existing_codes = {m.code for m in Menu.query.all()}
     existing_ids = {m.id for m in Menu.query.all()}
 
     added_count = 0
+    updated_count = 0
     for menu_data in menus_data:
-        if menu_data['code'] in existing_codes:
-            print(f"  菜单已存在: [{menu_data['code']}] {menu_data['name']}")
+        existing = Menu.query.filter_by(code=menu_data['code']).first()
+        if existing:
+            for field in ['name', 'icon', 'path', 'component', 'parent_id',
+                          'sort_order', 'menu_type', 'is_visible', 'is_active']:
+                setattr(existing, field, menu_data.get(field))
+            updated_count += 1
+            print(f"  更新菜单: [{menu_data['code']}] {menu_data['name']}")
             continue
 
         menu_id = menu_data['id'] if menu_data['id'] not in existing_ids else None
@@ -148,25 +164,25 @@ def init_menus():
         db.session.add(menu)
         db.session.flush()
         added_count += 1
+        existing_ids.add(menu.id)
         print(f"  创建菜单: [{menu_data['code']}] {menu_data['name']} (ID: {menu.id})")
 
-    if added_count > 0:
+    if added_count > 0 or updated_count > 0:
         db.session.commit()
-        print(f"菜单初始化完成，新增 {added_count} 项\n")
+        print(f"菜单同步完成，新增 {added_count} 项，更新 {updated_count} 项\n")
     else:
-        print("所有菜单已存在，无需新增\n")
+        print("菜单无变更\n")
 
     # 兼容显式写入固定 id 后序列未自动推进的问题
     sync_postgres_id_sequence('menus')
 
 
-def init_roles():
-    """初始化角色"""
+def refresh_super_admin_permissions():
+    """刷新超级管理员权限（授予全部菜单）"""
     Role = models['Role']
     Menu = models['Menu']
 
-    print("初始化角色...")
-
+    print("刷新超级管理员权限...")
     admin_role = Role.query.filter_by(code='super_admin').first()
     if not admin_role:
         admin_role = Role(
@@ -177,16 +193,20 @@ def init_roles():
         db.session.add(admin_role)
         db.session.flush()
         print("  创建角色: 超级管理员")
-    else:
-        print("  角色已存在: 超级管理员")
 
     all_menus = Menu.query.all()
     admin_role.menus = all_menus
-    print(f"  超级管理员分配 {len(all_menus)} 个菜单权限")
+    print(f"  超级管理员刷新为 {len(all_menus)} 个菜单权限")
 
     db.session.commit()
-    print("角色初始化完成\n")
+    return admin_role
 
+
+def init_roles():
+    """初始化角色"""
+    print("初始化角色...")
+    admin_role = refresh_super_admin_permissions()
+    print("角色初始化完成\n")
     return admin_role
 
 
@@ -216,19 +236,34 @@ def init_admin_user(admin_role):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="RBAC 初始化/增量同步脚本")
+    parser.add_argument(
+        "--incremental",
+        action="store_true",
+        help="仅做菜单增量同步 + 超级管理员权限刷新（不清空数据）",
+    )
+    args = parser.parse_args()
+
     print("=" * 60)
-    print("RBAC系统数据初始化")
+    print("RBAC系统同步")
     print("=" * 60 + "\n")
 
     with app.app_context():
         try:
-            clear_rbac_data()
-            init_menus()
-            admin_role = init_roles()
-            init_admin_user(admin_role)
+            if args.incremental:
+                print("模式: 增量同步\n")
+                init_menus()
+                admin_role = refresh_super_admin_permissions()
+                init_admin_user(admin_role)
+            else:
+                print("模式: 全量重建\n")
+                clear_rbac_data()
+                init_menus()
+                admin_role = init_roles()
+                init_admin_user(admin_role)
 
             print("=" * 60)
-            print("全部初始化完成！")
+            print("同步完成！")
             print("=" * 60)
             print("\n登录信息：")
             print("  用户名: admin")
@@ -239,6 +274,7 @@ def main():
             print(f"\n初始化失败: {e}")
             import traceback
             traceback.print_exc()
+            raise SystemExit(1)
 
 
 if __name__ == '__main__':

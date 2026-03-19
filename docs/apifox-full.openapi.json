@@ -25,6 +25,10 @@
       "description": "登录日志与操作日志接口"
     },
     {
+      "name": "后台-数据字典",
+      "description": "后台数据字典类型与字典项接口"
+    },
+    {
       "name": "后台-菜单管理",
       "description": "后台菜单管理与我的菜单接口"
     },
@@ -95,6 +99,538 @@
           }
         },
         "x-apifox-folder": "后台/系统管理/认证",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/dicts": {
+      "get": {
+        "tags": [
+          "后台-数据字典"
+        ],
+        "summary": "查询dicts",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/系统管理/数据字典",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "后台-数据字典"
+        ],
+        "summary": "创建dicts",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          },
+          "201": {
+            "description": "创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "x-apifox-folder": "后台/系统管理/数据字典",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/dicts/{dict_id}": {
+      "delete": {
+        "tags": [
+          "后台-数据字典"
+        ],
+        "summary": "删除dicts",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/系统管理/数据字典",
+        "parameters": [
+          {
+            "name": "dict_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "路径参数：dict_id"
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "后台-数据字典"
+        ],
+        "summary": "查询dicts",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/系统管理/数据字典",
+        "parameters": [
+          {
+            "name": "dict_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "路径参数：dict_id"
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "后台-数据字典"
+        ],
+        "summary": "更新dicts",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/系统管理/数据字典",
+        "parameters": [
+          {
+            "name": "dict_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "路径参数：dict_id"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/dicts/{dict_id}/items": {
+      "get": {
+        "tags": [
+          "后台-数据字典"
+        ],
+        "summary": "查询dict_items",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/系统管理/数据字典/字典项",
+        "parameters": [
+          {
+            "name": "dict_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "路径参数：dict_id"
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "后台-数据字典"
+        ],
+        "summary": "创建dict_items",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          },
+          "201": {
+            "description": "创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "x-apifox-folder": "后台/系统管理/数据字典/字典项",
+        "parameters": [
+          {
+            "name": "dict_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "路径参数：dict_id"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/dicts/items/{item_id}": {
+      "delete": {
+        "tags": [
+          "后台-数据字典"
+        ],
+        "summary": "删除dict_items",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/系统管理/数据字典/字典项",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "路径参数：item_id"
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "后台-数据字典"
+        ],
+        "summary": "查询dict_items",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/系统管理/数据字典/字典项",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "路径参数：item_id"
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "后台-数据字典"
+        ],
+        "summary": "更新dict_items",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/系统管理/数据字典/字典项",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "路径参数：item_id"
+          }
+        ],
         "requestBody": {
           "required": false,
           "content": {

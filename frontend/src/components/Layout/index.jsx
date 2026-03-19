@@ -25,6 +25,7 @@ const MENU_ICON_MAP = {
   system_users: <IconUser />,
   system_roles: <IconList />,
   system_menus: <IconArticle />,
+  system_dicts: <IconList />,
   system_logs:  <IconArticle />,
 }
 

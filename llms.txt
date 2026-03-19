@@ -1,0 +1,41 @@
+# AuraStack (AI-First Scaffold)
+
+AuraStack is a Flask + React + RBAC scaffold optimized for AI-driven feature delivery.
+Product managers provide only natural-language intent. Agents perform end-to-end implementation.
+
+## Canonical Entry Points
+
+- [Agent Rules](./AGENTS.md)
+- [OpenAPI Source](./docs/apifox-full.openapi.json)
+- [Apifox Push Script](./scripts/import_openapi_to_apifox.py)
+- [RBAC Seed Script](./scripts/init_rbac_data.py)
+- [Feature Verification Script](./scripts/verify_feature.py)
+
+## Backend Structure
+
+- Admin routes bootstrap: `backend/routes/admin/__init__.py`
+- Auth: `backend/routes/admin/auth.py`
+- Users: `backend/routes/admin/users.py`
+- Roles: `backend/routes/admin/roles.py`
+- Menus: `backend/routes/admin/menus.py`
+- Logs: `backend/routes/admin/logs.py`
+- Models: `backend/models.py`
+
+## Frontend Structure
+
+- Dynamic routes: `frontend/src/App.jsx`
+- Layout/nav: `frontend/src/components/Layout/index.jsx`
+- API clients: `frontend/src/api/*.js`
+- Pages: `frontend/src/pages/**/index.jsx`
+
+## Definition of Done
+
+Any new module/feature should include:
+
+1. Backend route implementation and registration.
+2. Frontend page + API client + menu routing.
+3. RBAC menu/button permissions and seed updates.
+4. Run `python3 scripts/init_rbac_data.py --incremental` to sync menus and refresh super-admin permissions.
+5. Migration script(s) when schema changes.
+6. OpenAPI JSON update and optional Apifox push.
+7. Build/compile verification.
