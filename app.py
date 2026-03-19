@@ -3,6 +3,7 @@
 前后端分离架构
 """
 from flask import Flask, jsonify, send_from_directory, request
+from sqlalchemy import text
 from flask_cors import CORS
 from flask_compress import Compress
 from flask_caching import Cache
@@ -79,7 +80,7 @@ def add_header(response):
 def health_check():
     """健康检查端点"""
     try:
-        db.session.execute(db.text('SELECT 1'))
+        db.session.execute(text('SELECT 1'))
         return jsonify({
             "status": "healthy",
             "timestamp": datetime.utcnow().isoformat(),

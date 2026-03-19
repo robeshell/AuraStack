@@ -131,4 +131,4 @@ def init_auth_routes(db, models):
         user = Admin.query.filter_by(username=username).first()
         if not user:
             return jsonify({'error': '用户不存在'}), 404
-        return jsonify(user.to_dict())
+        return jsonify({'user': user.to_dict()})
