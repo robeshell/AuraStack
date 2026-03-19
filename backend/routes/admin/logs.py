@@ -238,9 +238,6 @@ def init_logs_routes(db, models):
                 return jsonify({'error': '请先勾选要导出的日志数据'}), 400
             items = LoginLog.query.filter(LoginLog.id.in_(ids)).order_by(LoginLog.id.asc()).all()
 
-        if not items:
-            return jsonify({'error': '未找到可导出的日志数据'}), 404
-
         headers = [login_export_field_map[field][0] for field in valid_fields]
         rows = [[login_export_field_map[field][1](item) for field in valid_fields] for item in items]
         try:
@@ -380,9 +377,6 @@ def init_logs_routes(db, models):
             if not isinstance(ids, list) or not ids:
                 return jsonify({'error': '请先勾选要导出的日志数据'}), 400
             items = OperationLog.query.filter(OperationLog.id.in_(ids)).order_by(OperationLog.id.asc()).all()
-
-        if not items:
-            return jsonify({'error': '未找到可导出的日志数据'}), 404
 
         headers = [operation_export_field_map[field][0] for field in valid_fields]
         rows = [[operation_export_field_map[field][1](item) for field in valid_fields] for item in items]

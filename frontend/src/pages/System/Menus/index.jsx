@@ -3,9 +3,9 @@ import {
   Table, Button, Modal, Form, Toast,
   Popconfirm, Tag, Input, Space, Typography, Tooltip,
 } from '@douyinfe/semi-ui'
-import { IconPlus, IconRefresh, IconSearch } from '@douyinfe/semi-icons'
+import { IconPlus, IconRefresh, IconSearch, IconArrowUp, IconArrowDown } from '@douyinfe/semi-icons'
 import {
-  getMenus, createMenu, updateMenu, deleteMenu,
+  getMenus, createMenu, updateMenu, deleteMenu, sortMenu,
   exportMenus, downloadMenusTemplate, importMenus,
 } from '../../../api/menus'
 import ExportFieldsModal from '../../../components/ImportExport/ExportFieldsModal'
@@ -113,6 +113,19 @@ export default function Menus() {
       .catch((err) => Toast.error(err?.error || '删除失败'))
   }
 
+  const handleSort = (id, direction) => {
+    sortMenu(id, direction)
+      .then((res) => {
+        if (res?.changed) {
+          Toast.success('排序成功')
+        } else {
+          Toast.info(res?.message || '无需调整')
+        }
+        fetchData(querySearch)
+      })
+      .catch((err) => Toast.error(err?.error || '排序失败'))
+  }
+
   const handleSearch = () => {
     setSelectedRowKeys([])
     fetchData(search.trim())
@@ -190,6 +203,22 @@ export default function Menus() {
         <Space>
           <Button size="small" onClick={() => openCreate(record.id)}>
             添加子项
+          </Button>
+          <Button
+            size="small"
+            type="tertiary"
+            icon={<IconArrowUp />}
+            onClick={() => handleSort(record.id, 'up')}
+          >
+            上移
+          </Button>
+          <Button
+            size="small"
+            type="tertiary"
+            icon={<IconArrowDown />}
+            onClick={() => handleSort(record.id, 'down')}
+          >
+            下移
           </Button>
           <Button size="small" onClick={() => openEdit(record)}>
             编辑

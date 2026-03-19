@@ -77,6 +77,8 @@ def init_menus():
         {'id': 1, 'name': '首页', 'code': 'dashboard', 'icon': 'IconHome', 'path': '/dashboard', 'component': 'Dashboard',
             'parent_id': None, 'sort_order': 1, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
         {'id': 2, 'name': '系统管理', 'code': 'system', 'icon': 'IconSetting', 'path': None, 'component': None,
+            'parent_id': None, 'sort_order': 99, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
+        {'id': 3, 'name': '数据管理', 'code': 'data_management', 'icon': 'IconApps', 'path': None, 'component': None,
             'parent_id': None, 'sort_order': 2, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
 
         # 系统管理子菜单
@@ -90,6 +92,10 @@ def init_menus():
             'parent_id': 2, 'sort_order': 4, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
         {'id': 25, 'name': '数据字典', 'code': 'system_dicts', 'icon': 'IconList', 'path': '/system/dicts', 'component': 'Dicts',
             'parent_id': 2, 'sort_order': 5, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
+
+        # 数据管理子菜单
+        {'id': 31, 'name': '查询管理', 'code': 'system_query_management', 'icon': 'IconFile', 'path': '/data/query-management', 'component': 'System/QueryManagement',
+            'parent_id': 3, 'sort_order': 1, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
 
         # 用户管理按钮权限
         {'id': 211, 'name': '新增用户', 'code': 'system_users_add', 'icon': None, 'path': None, 'component': None,
@@ -126,6 +132,14 @@ def init_menus():
             'parent_id': 25, 'sort_order': 2, 'menu_type': 'button', 'is_visible': False, 'is_active': True},
         {'id': 253, 'name': '删除字典', 'code': 'system_dicts_delete', 'icon': None, 'path': None, 'component': None,
             'parent_id': 25, 'sort_order': 3, 'menu_type': 'button', 'is_visible': False, 'is_active': True},
+
+        # 查询管理按钮权限
+        {'id': 311, 'name': '新增查询', 'code': 'system_query_management_add', 'icon': None, 'path': None, 'component': None,
+            'parent_id': 31, 'sort_order': 1, 'menu_type': 'button', 'is_visible': False, 'is_active': True},
+        {'id': 312, 'name': '编辑查询', 'code': 'system_query_management_edit', 'icon': None, 'path': None, 'component': None,
+            'parent_id': 31, 'sort_order': 2, 'menu_type': 'button', 'is_visible': False, 'is_active': True},
+        {'id': 313, 'name': '删除查询', 'code': 'system_query_management_delete', 'icon': None, 'path': None, 'component': None,
+            'parent_id': 31, 'sort_order': 3, 'menu_type': 'button', 'is_visible': False, 'is_active': True},
     ]
 
     print("初始化菜单数据...")

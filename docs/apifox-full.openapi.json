@@ -41,6 +41,10 @@
       "description": "后台用户管理相关接口"
     },
     {
+      "name": "后台-查询管理",
+      "description": "后台查询管理（查询模板）相关接口"
+    },
+    {
       "name": "系统",
       "description": "系统与健康检查"
     }
@@ -2518,6 +2522,498 @@
             }
           }
         }
+      }
+    },
+    "/api/admin/query-management": {
+      "get": {
+        "tags": [
+          "后台-查询管理"
+        ],
+        "summary": "查询query-management",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/数据管理/查询管理",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "后台-查询管理"
+        ],
+        "summary": "创建query-management",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          },
+          "201": {
+            "description": "创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "x-apifox-folder": "后台/数据管理/查询管理",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/query-management/{item_id}": {
+      "get": {
+        "tags": [
+          "后台-查询管理"
+        ],
+        "summary": "查询query-management",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/数据管理/查询管理",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "路径参数：item_id"
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "后台-查询管理"
+        ],
+        "summary": "更新query-management",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/数据管理/查询管理",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "路径参数：item_id"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "后台-查询管理"
+        ],
+        "summary": "删除query-management",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/数据管理/查询管理",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "路径参数：item_id"
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/query-management/export": {
+      "post": {
+        "tags": [
+          "后台-查询管理"
+        ],
+        "summary": "导出query-management",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/数据管理/查询管理/导入导出",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "后台-查询管理"
+        ],
+        "summary": "导出query-management（GET）",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/数据管理/查询管理/导入导出",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/query-management/template": {
+      "get": {
+        "tags": [
+          "后台-查询管理"
+        ],
+        "summary": "下载query-management导入模板",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/数据管理/查询管理/导入导出",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/query-management/import": {
+      "post": {
+        "tags": [
+          "后台-查询管理"
+        ],
+        "summary": "导入query-management",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/数据管理/查询管理/导入导出",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/menus/{menu_id}/sort": {
+      "post": {
+        "tags": [
+          "后台-菜单管理"
+        ],
+        "summary": "排序menus",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "403": {
+            "description": "无权限"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        },
+        "x-apifox-folder": "后台/系统管理/菜单管理",
+        "parameters": [
+          {
+            "name": "menu_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "路径参数：menu_id"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
       }
     }
   }

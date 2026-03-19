@@ -114,6 +114,7 @@ def main() -> int:
         "backend/routes/admin/menus.py",
         "backend/routes/admin/logs.py",
         "backend/routes/admin/dicts.py",
+        "backend/routes/admin/query_management.py",
         "scripts/init_rbac_data.py",
         "scripts/import_openapi_to_apifox.py",
     ]

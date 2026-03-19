@@ -152,9 +152,6 @@ def init_users_routes(db, models):
                 return jsonify({'error': '请先勾选要导出的用户数据'}), 400
             items = Admin.query.filter(Admin.id.in_(ids)).order_by(Admin.id.asc()).all()
 
-        if not items:
-            return jsonify({'error': '未找到可导出的用户数据'}), 404
-
         headers = [export_field_map[field][0] for field in valid_fields]
         rows = [[export_field_map[field][1](item) for field in valid_fields] for item in items]
         try:

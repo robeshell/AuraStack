@@ -99,6 +99,33 @@ def init_menus_routes(db, models):
             'row': {k: ('' if v is None else str(v)) for k, v in (row or {}).items()}
         }
 
+    def reorder_siblings(parent_id, moved_id, direction):
+        siblings = Menu.query.filter(Menu.parent_id == parent_id).order_by(
+            Menu.sort_order.asc(),
+            Menu.id.asc()
+        ).all()
+        if len(siblings) <= 1:
+            return False, '当前层级只有一个菜单，无需排序'
+
+        id_list = [item.id for item in siblings]
+        if moved_id not in id_list:
+            return False, '菜单不存在于当前层级'
+
+        index = id_list.index(moved_id)
+        if direction == 'up':
+            if index == 0:
+                return False, '当前菜单已在最前'
+            id_list[index - 1], id_list[index] = id_list[index], id_list[index - 1]
+        else:
+            if index == len(id_list) - 1:
+                return False, '当前菜单已在最后'
+            id_list[index + 1], id_list[index] = id_list[index], id_list[index + 1]
+
+        menu_map = {item.id: item for item in siblings}
+        for idx, menu_id in enumerate(id_list, start=1):
+            menu_map[menu_id].sort_order = idx * 10
+        return True, '排序成功'
+
     @bp.route('/api/admin/menus', methods=['GET', 'POST'])
     @login_required
     def manage_menus():
@@ -187,6 +214,30 @@ def init_menus_routes(db, models):
                 db.session.rollback()
                 return jsonify({'error': str(e)}), 500
 
+    @bp.route('/api/admin/menus/<int:menu_id>/sort', methods=['POST'])
+    @login_required
+    def sort_menu(menu_id):
+        menu = Menu.query.get_or_404(menu_id)
+        username = session.get('username')
+        current_user = Admin.query.filter_by(username=username).first()
+        if not current_user or not current_user.has_menu_code_access('system_menus_edit'):
+            return jsonify({'error': '无权限排序菜单'}), 403
+
+        data = request.get_json() or {}
+        direction = str(data.get('direction') or '').strip().lower()
+        if direction not in {'up', 'down'}:
+            return jsonify({'error': 'direction 参数必须是 up 或 down'}), 400
+
+        try:
+            changed, message = reorder_siblings(menu.parent_id, menu.id, direction)
+            if not changed:
+                return jsonify({'message': message, 'changed': False})
+            db.session.commit()
+            return jsonify({'message': message, 'changed': True})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+
         if request.method == 'DELETE':
             username = session.get('username')
             current_user = Admin.query.filter_by(username=username).first()
@@ -266,9 +317,6 @@ def init_menus_routes(db, models):
             if not isinstance(ids, list) or not ids:
                 return jsonify({'error': '请先勾选要导出的菜单数据'}), 400
             items = Menu.query.filter(Menu.id.in_(ids)).order_by(Menu.sort_order.asc(), Menu.id.asc()).all()
-
-        if not items:
-            return jsonify({'error': '未找到可导出的菜单数据'}), 404
 
         headers = [export_field_map[field][0] for field in valid_fields]
         rows = [[export_field_map[field][1](item) for field in valid_fields] for item in items]
