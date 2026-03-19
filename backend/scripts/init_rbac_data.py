@@ -74,7 +74,7 @@ def init_menus():
 
     menus_data = [
         # 一级菜单
-        {'id': 1, 'name': '首页', 'code': 'dashboard', 'icon': 'IconHome', 'path': '/dashboard', 'component': 'Dashboard',
+        {'id': 1, 'name': '首页', 'code': 'dashboard', 'icon': 'IconHome', 'path': '/dashboard', 'component': 'admin/dashboard',
             'parent_id': None, 'sort_order': 1, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
         {'id': 2, 'name': '系统管理', 'code': 'system', 'icon': 'IconSetting', 'path': None, 'component': None,
             'parent_id': None, 'sort_order': 99, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
@@ -82,21 +82,21 @@ def init_menus():
             'parent_id': None, 'sort_order': 2, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
 
         # 系统管理子菜单
-        {'id': 21, 'name': '用户管理', 'code': 'system_users', 'icon': 'IconUser', 'path': '/system/users', 'component': 'Users',
+        {'id': 21, 'name': '用户管理', 'code': 'system_users', 'icon': 'IconUser', 'path': '/system/users', 'component': 'admin/users',
             'parent_id': 2, 'sort_order': 1, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
-        {'id': 22, 'name': '角色权限', 'code': 'system_roles', 'icon': 'IconIdCard', 'path': '/system/roles', 'component': 'Roles',
+        {'id': 22, 'name': '角色权限', 'code': 'system_roles', 'icon': 'IconIdCard', 'path': '/system/roles', 'component': 'admin/roles',
             'parent_id': 2, 'sort_order': 2, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
-        {'id': 23, 'name': '菜单管理', 'code': 'system_menus', 'icon': 'IconApps', 'path': '/system/menus', 'component': 'Menus',
+        {'id': 23, 'name': '菜单管理', 'code': 'system_menus', 'icon': 'IconApps', 'path': '/system/menus', 'component': 'admin/menus',
             'parent_id': 2, 'sort_order': 3, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
-        {'id': 24, 'name': '日志管理', 'code': 'system_logs', 'icon': 'IconFile', 'path': '/system/logs', 'component': 'Logs',
+        {'id': 24, 'name': '日志管理', 'code': 'system_logs', 'icon': 'IconFile', 'path': '/system/logs', 'component': 'admin/logs',
             'parent_id': 2, 'sort_order': 4, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
-        {'id': 25, 'name': '数据字典', 'code': 'system_dicts', 'icon': 'IconList', 'path': '/system/dicts', 'component': 'Dicts',
+        {'id': 25, 'name': '数据字典', 'code': 'system_dicts', 'icon': 'IconList', 'path': '/system/dicts', 'component': 'admin/dicts',
             'parent_id': 2, 'sort_order': 5, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
 
         # 数据管理子菜单
-        {'id': 31, 'name': '查询管理', 'code': 'system_query_management', 'icon': 'IconFile', 'path': '/data/query-management', 'component': 'System/QueryManagement',
+        {'id': 31, 'name': '查询管理', 'code': 'system_query_management', 'icon': 'IconFile', 'path': '/data/query-management', 'component': 'data_management/query_management',
             'parent_id': 3, 'sort_order': 1, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
-        {'id': 32, 'name': '定时任务', 'code': 'system_scheduled_tasks', 'icon': 'IconSetting', 'path': '/system/scheduled-tasks', 'component': 'System/ScheduledTasks',
+        {'id': 32, 'name': '定时任务', 'code': 'system_scheduled_tasks', 'icon': 'IconSetting', 'path': '/system/scheduled-tasks', 'component': 'admin/scheduled_tasks',
             'parent_id': 2, 'sort_order': 6, 'menu_type': 'menu', 'is_visible': True, 'is_active': True},
 
         # 用户管理按钮权限

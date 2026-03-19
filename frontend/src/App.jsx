@@ -5,18 +5,41 @@ import { AuthProvider } from './context/AuthContext'
 import { useAuth } from './context/AuthContext'
 import PrivateRoute from './components/Layout/PrivateRoute'
 import Layout from './components/Layout'
-import Login from './pages/Login'
+import Login from './modules/auth/pages/login'
 
-const PAGE_MODULES = import.meta.glob('./pages/**/index.jsx', { eager: true })
+const PAGE_MODULES = import.meta.glob('./modules/**/pages/**/index.jsx', { eager: true })
 
 function resolvePageComponent(componentName) {
   if (!componentName || typeof componentName !== 'string') {
     return null
   }
-  const componentPathSuffix = `/${componentName}/index.jsx`
-  const matchedEntry = Object.entries(PAGE_MODULES).find(([modulePath]) =>
-    modulePath.endsWith(componentPathSuffix)
-  )
+  const normalizedComponentName = componentName
+    .trim()
+    .replace(/\\/g, '/')
+    .replace(/^\/+|\/+$/g, '')
+  if (!normalizedComponentName) {
+    return null
+  }
+  const componentParts = normalizedComponentName.split('/').filter(Boolean)
+  let matchedEntry = null
+
+  // 新规范：component 使用 "<module>/<page_path>"，例如 "admin/roles"
+  if (componentParts.length >= 2) {
+    const [moduleName, ...pageParts] = componentParts
+    const newPathSuffix = `/modules/${moduleName}/pages/${pageParts.join('/')}/index.jsx`
+    matchedEntry = Object.entries(PAGE_MODULES).find(([modulePath]) =>
+      modulePath.endsWith(newPathSuffix)
+    )
+  }
+
+  // 兼容旧值，避免历史菜单数据导致页面不可访问
+  if (!matchedEntry) {
+    const legacyPathSuffix = `/pages/${normalizedComponentName}/index.jsx`
+    matchedEntry = Object.entries(PAGE_MODULES).find(([modulePath]) =>
+      modulePath.endsWith(legacyPathSuffix)
+    )
+  }
+
   return matchedEntry?.[1]?.default || null
 }
 
@@ -61,7 +84,8 @@ function RouteNotConfigured({ path, component }) {
       <Typography.Paragraph>
         菜单路径 <Typography.Text code>{path}</Typography.Text> 对应的组件
         <Typography.Text code style={{ marginLeft: 6 }}>{component || '(空)'}</Typography.Text>
-        暂未在前端注册。
+        暂未在前端注册。组件值需与 `frontend/src/modules/**/pages/**/index.jsx` 对齐，
+        例如 `admin/users`、`data_management/query_management`。
       </Typography.Paragraph>
     </div>
   )

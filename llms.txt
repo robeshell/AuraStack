@@ -39,9 +39,10 @@ Product managers provide only natural-language intent. Agents perform end-to-end
 
 - Dynamic routes: `frontend/src/App.jsx`
 - Layout/nav: `frontend/src/components/Layout/index.jsx`
-- Shared import/export UI: `frontend/src/components/ImportExport/*`
-- API clients: `frontend/src/api/*.js`
-- Pages: `frontend/src/pages/**/index.jsx`
+- Module pages: `frontend/src/modules/**/pages/**/index.jsx`
+- Module APIs: `frontend/src/modules/**/api/*.js`
+- Shared import/export UI: `frontend/src/shared/components/import-export/*`
+- Shared API client/utilities: `frontend/src/shared/api/*`, `frontend/src/shared/utils/*`
 
 ## Definition of Done
 

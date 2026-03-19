@@ -11,7 +11,6 @@ Purpose:
 from __future__ import annotations
 
 import argparse
-import re
 import subprocess
 import sys
 from pathlib import Path
@@ -33,19 +32,8 @@ def run(cmd: list[str], cwd: Path | None = None) -> tuple[int, str]:
     return process.returncode, process.stdout
 
 
-def check_file_exists(path: Path, errors: list[str]) -> None:
-    if not path.exists():
-        errors.append(f"Missing file: {path.relative_to(ROOT)}")
-
-
-def to_pascal_case(name: str) -> str:
-    parts = re.split(r"[_\-\s]+", name.strip())
-    return "".join(p[:1].upper() + p[1:] for p in parts if p)
-
-
 def verify_module(module: str, errors: list[str], warnings: list[str]) -> None:
     module = module.strip().lower()
-    pascal = to_pascal_case(module)
     singular = module[:-1] if module.endswith("s") else module
 
     backend_candidates = [
@@ -67,16 +55,34 @@ def verify_module(module: str, errors: list[str], warnings: list[str]) -> None:
             ROOT / "backend" / "app" / "admin" / "api" / "scheduled-task.py",
             ROOT / "backend" / "app" / "admin" / "api" / "scheduled_tasks.py",
         ])
-    frontend_api = ROOT / "frontend" / "src" / "api" / f"{module}.js"
-    frontend_page = ROOT / "frontend" / "src" / "pages" / "System" / pascal / "index.jsx"
+    frontend_api_candidates = [
+        ROOT / "frontend" / "src" / "modules" / "admin" / "api" / f"{module}.js",
+        ROOT / "frontend" / "src" / "modules" / "admin" / "api" / f"{singular}.js",
+        ROOT / "frontend" / "src" / "modules" / "data_management" / "api" / f"{module}.js",
+        ROOT / "frontend" / "src" / "modules" / "data_management" / "api" / f"{singular}.js",
+    ]
+    frontend_page_candidates = [
+        ROOT / "frontend" / "src" / "modules" / "admin" / "pages" / module / "index.jsx",
+        ROOT / "frontend" / "src" / "modules" / "admin" / "pages" / singular / "index.jsx",
+        ROOT / "frontend" / "src" / "modules" / "data_management" / "pages" / module / "index.jsx",
+        ROOT / "frontend" / "src" / "modules" / "data_management" / "pages" / singular / "index.jsx",
+    ]
 
     if not any(path.exists() for path in backend_candidates):
         errors.append(
             "Missing backend entry: expected one of "
             + ", ".join(str(path.relative_to(ROOT)) for path in backend_candidates)
         )
-    check_file_exists(frontend_api, errors)
-    check_file_exists(frontend_page, errors)
+    if not any(path.exists() for path in frontend_api_candidates):
+        errors.append(
+            "Missing frontend API entry: expected one of "
+            + ", ".join(str(path.relative_to(ROOT)) for path in frontend_api_candidates)
+        )
+    if not any(path.exists() for path in frontend_page_candidates):
+        errors.append(
+            "Missing frontend page entry: expected one of "
+            + ", ".join(str(path.relative_to(ROOT)) for path in frontend_page_candidates)
+        )
 
     router_files = [
         ROOT / "backend" / "app" / "router.py",

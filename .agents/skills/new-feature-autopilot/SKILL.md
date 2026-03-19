@@ -34,10 +34,11 @@ Deliver a usable feature from intent only:
    - If introducing a new first-level domain, wire it in `backend/app/router.py` and `backend/app/__init__.py`.
    - Add/update model entities and migration when data shape changes.
 5. Implement frontend
-   - Add page under `frontend/src/pages/**/index.jsx`.
-   - Add API file under `frontend/src/api/`.
-   - Ensure menu `path` + `component` are compatible with dynamic routing.
-   - Prefer reusing `frontend/src/components/ImportExport/*` for import/export UX.
+   - Add page under `frontend/src/modules/**/pages/**/index.jsx`.
+   - Add API file under `frontend/src/modules/**/api/`.
+   - Reuse shared request/utils from `frontend/src/shared/api/` and `frontend/src/shared/utils/`.
+   - Ensure menu `path` + `component` are compatible with dynamic routing (`component` like `admin/users`, `data_management/query_management`).
+   - Prefer reusing `frontend/src/shared/components/import-export/*` for import/export UX.
    - If module includes import/export, follow the existing import/export implementation pattern already used in this project.
 6. Integrate permissions
    - Add menu/button permission codes.

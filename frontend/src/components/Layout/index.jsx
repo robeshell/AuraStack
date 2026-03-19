@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { Nav, Avatar, Dropdown, Typography, Modal, Form, Toast } from '@douyinfe/semi-ui'
 import {
@@ -12,12 +12,14 @@ import {
   IconApps,
   IconIdCard,
   IconFile,
+  IconMenu,
 } from '@douyinfe/semi-icons'
 import { useAuth } from '../../context/AuthContext'
-import { changePassword } from '../../api/auth'
+import { changePassword } from '../../modules/admin/api/auth'
 import './layout.css'
 
 const { Text } = Typography
+const MOBILE_BREAKPOINT = 992
 
 const MENU_ICON_MAP = {
   dashboard:    <IconHome />,
@@ -73,9 +75,34 @@ export default function Layout() {
   const navigate = useNavigate()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth <= MOBILE_BREAKPOINT : false
+  )
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [pwdVisible, setPwdVisible] = useState(false)
   const [pwdSubmitting, setPwdSubmitting] = useState(false)
   const pwdFormApi = useRef()
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT)
+    }
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  useEffect(() => {
+    if (!isMobile) {
+      setMobileMenuOpen(false)
+    }
+  }, [isMobile])
+
+  useEffect(() => {
+    if (isMobile) {
+      setMobileMenuOpen(false)
+    }
+  }, [isMobile, location.pathname])
 
   const flatMenus = useMemo(() => flattenMenus(menus), [menus])
   const menuPathMap = useMemo(() => {
@@ -100,7 +127,12 @@ export default function Layout() {
 
   const handleSelect = ({ itemKey }) => {
     const path = menuPathMap[itemKey]
-    if (path) navigate(path)
+    if (path) {
+      navigate(path)
+      if (isMobile) {
+        setMobileMenuOpen(false)
+      }
+    }
   }
 
   const handleLogout = async () => {
@@ -139,12 +171,19 @@ export default function Layout() {
 
   return (
     <div className="as-layout">
+      {isMobile && mobileMenuOpen ? (
+        <div className="as-sider-mask" onClick={() => setMobileMenuOpen(false)} aria-hidden="true" />
+      ) : null}
       {/* 深色侧边栏 */}
-      <div className="as-sider">
+      <div className={`as-sider ${isMobile ? 'as-sider-mobile' : ''} ${mobileMenuOpen ? 'as-sider-open' : ''}`}>
         <Nav
-          style={{ height: '100%', background: 'transparent' }}
-          isCollapsed={collapsed}
-          onCollapseChange={setCollapsed}
+          style={{ height: '100%', width: '100%', background: 'transparent' }}
+          isCollapsed={isMobile ? false : collapsed}
+          onCollapseChange={(next) => {
+            if (!isMobile) {
+              setCollapsed(next)
+            }
+          }}
           items={navItems}
           selectedKeys={currentKey ? [currentKey] : []}
           onSelect={handleSelect}
@@ -152,7 +191,7 @@ export default function Layout() {
             logo: (
               <img
                 src="/logo.svg"
-                style={{ width: 28, height: 28, flexShrink: 0 }}
+                style={{ width: 44, height: 44, flexShrink: 0 }}
                 alt="logo"
               />
             ),
@@ -160,7 +199,7 @@ export default function Layout() {
               <span className="as-brand-text">AuraStack</span>
             ),
           }}
-          footer={{ collapseButton: true }}
+          footer={isMobile ? undefined : { collapseButton: true }}
         />
       </div>
 
@@ -168,10 +207,22 @@ export default function Layout() {
       <div className="as-main">
         {/* Header */}
         <header className="as-header">
+          <div className="as-header-left">
+            {isMobile ? (
+              <button
+                type="button"
+                className="as-menu-trigger"
+                onClick={() => setMobileMenuOpen((open) => !open)}
+                aria-label="打开菜单"
+              >
+                <IconMenu />
+              </button>
+            ) : null}
+          </div>
           <div className="as-header-right">
             <Dropdown render={dropdownMenu} trigger="click" position="bottomRight">
               <div className="as-user-info">
-                <Avatar size="small" color="indigo" style={{ background: 'linear-gradient(135deg,#6366f1,#a855f7)' }}>
+                <Avatar size="small" color="blue" style={{ background: 'linear-gradient(135deg,#2563eb,#06b6d4)' }}>
                   {user?.username?.[0]?.toUpperCase()}
                 </Avatar>
                 <Text className="as-username">{user?.username}</Text>

@@ -36,3 +36,35 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #a0a3b8;
 }
+
+@media (max-width: 768px) {
+  .semi-modal {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 12px auto !important;
+  }
+
+  .semi-modal-content {
+    max-height: calc(100dvh - 24px);
+  }
+
+  .semi-modal-body {
+    overflow-y: auto;
+  }
+
+  .semi-modal-header {
+    margin: 16px 0 10px;
+  }
+
+  .semi-modal-footer {
+    margin: 14px 0 16px;
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .semi-modal-footer .semi-button + .semi-button {
+    margin-left: 0;
+  }
+}

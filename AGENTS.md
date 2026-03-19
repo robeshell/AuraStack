@@ -35,10 +35,11 @@ When user says "做XX功能", the agent must complete this chain:
    - If introducing a new first-level domain, wire it in `backend/app/router.py` and `backend/app/__init__.py`.
    - Update model entities and migration when schema changes.
 3. **Frontend implementation**
-   - Add/update page component under `frontend/src/pages/**/index.jsx`.
-   - Add API client under `frontend/src/api/`.
+   - Add/update page component under `frontend/src/modules/**/pages/**/index.jsx`.
+   - Add API client under `frontend/src/modules/**/api/` (shared request client in `frontend/src/shared/api/`).
    - Ensure menu path/component can be resolved by dynamic routing (`frontend/src/App.jsx`).
-   - Prefer reusing existing import/export components under `frontend/src/components/ImportExport/`.
+   - Menu component value should align with `modules/**/pages/**/index.jsx` suffix (e.g. `admin/users`, `data_management/query_management`).
+   - Prefer reusing existing import/export components under `frontend/src/shared/components/import-export/`.
    - If the module has import/export, follow the existing import/export implementation pattern already used in this project.
 4. **RBAC integration**
    - Add module menu + button permissions.
