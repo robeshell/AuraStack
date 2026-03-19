@@ -18,6 +18,8 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:5001',
         changeOrigin: true,
+        // 透传客户端来源信息，便于后端日志记录真实 IP
+        xfwd: true,
       },
     },
   },

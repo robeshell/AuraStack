@@ -3,7 +3,7 @@
 后台管理 - 角色管理模块
 """
 from flask import jsonify, request, session
-from backend.utils import login_required, menu_permission_required
+from backend.utils import login_required
 from . import bp
 
 
@@ -11,14 +11,26 @@ def init_roles_routes(db, models):
     """初始化角色管理相关路由"""
     Role = models['Role']
     Menu = models['Menu']
+    Admin = models['Admin']
+
+    def has_permission(code):
+        username = session.get('username')
+        if not username:
+            return False
+        user = Admin.query.filter_by(username=username).first()
+        return bool(user and user.has_menu_code_access(code))
 
     @bp.route('/api/admin/roles', methods=['GET', 'POST'])
     @login_required
-    @menu_permission_required('system_roles_add')
     def manage_roles():
         if request.method == 'GET':
+            if not has_permission('system_roles'):
+                return jsonify({'error': '无权限查看角色列表'}), 403
             roles = Role.query.all()
             return jsonify([r.to_dict(include_menus=True) for r in roles])
+
+        if not has_permission('system_roles_add'):
+            return jsonify({'error': '无权限新增角色'}), 403
 
         data = request.json
         if not data.get('name'):
@@ -50,7 +62,6 @@ def init_roles_routes(db, models):
 
         if request.method == 'DELETE':
             username = session.get('username')
-            Admin = models['Admin']
             current_user = Admin.query.filter_by(username=username).first()
             if not current_user or not current_user.has_menu_code_access('system_roles_delete'):
                 return jsonify({'error': '无权限删除角色'}), 403
@@ -60,7 +71,6 @@ def init_roles_routes(db, models):
             return jsonify({'message': '删除成功'})
 
         username = session.get('username')
-        Admin = models['Admin']
         current_user = Admin.query.filter_by(username=username).first()
         if not current_user or not current_user.has_menu_code_access('system_roles_edit'):
             return jsonify({'error': '无权限编辑角色'}), 403

@@ -12,7 +12,7 @@ export default function Login() {
   const [submitting, setSubmitting] = useState(false)
 
   if (!loading && user) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/" replace />
   }
 
   const handleSubmit = async (values) => {
@@ -21,7 +21,7 @@ export default function Login() {
       const data = await login(values)
       await setAuth(data.user)
       Toast.success('登录成功')
-      navigate('/dashboard')
+      navigate('/')
     } catch (err) {
       Toast.error(err?.message || '用户名或密码错误')
     } finally {

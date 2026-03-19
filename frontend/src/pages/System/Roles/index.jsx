@@ -24,7 +24,7 @@ export default function Roles() {
   const [menuTree, setMenuTree] = useState([])
   const [checkedMenus, setCheckedMenus] = useState([])
   const [submitting, setSubmitting] = useState(false)
-  const formRef = useRef()
+  const formApiRef = useRef()
 
   const fetchData = () => {
     setLoading(true)
@@ -49,14 +49,22 @@ export default function Roles() {
 
   const openEdit = (record) => {
     setEditRecord(record)
-    setCheckedMenus(record.menus?.map((m) => String(m.id)) || [])
+    setCheckedMenus(Array.isArray(record.menu_ids) ? record.menu_ids : (record.menus?.map((m) => m.id) || []))
     setModalVisible(true)
   }
 
+  const normalizeCheckedMenuIds = (vals) => {
+    const raw = Array.isArray(vals) ? vals : (vals === undefined || vals === null ? [] : [vals])
+    return raw
+      .map((v) => (typeof v === 'object' && v !== null ? v.value : v))
+      .map((v) => Number(v))
+      .filter((v) => Number.isInteger(v))
+  }
+
   const handleSubmit = () => {
-    formRef.current.validate().then((values) => {
+    formApiRef.current.validate().then((values) => {
       setSubmitting(true)
-      const payload = { ...values, menu_ids: checkedMenus.map(Number) }
+      const payload = { ...values, menu_ids: checkedMenus }
       const fn = editRecord ? updateRole(editRecord.id, payload) : createRole(payload)
       fn.then(() => {
         Toast.success(editRecord ? '修改成功' : '创建成功')
@@ -145,9 +153,9 @@ export default function Roles() {
         onCancel={() => setModalVisible(false)}
         okButtonProps={{ loading: submitting }}
         width={560}
-        afterClose={() => formRef.current?.setValues({})}
+        afterClose={() => formApiRef.current?.reset()}
       >
-        <Form ref={formRef} initValues={initValues} labelPosition="left" labelWidth={90}>
+        <Form getFormApi={api => formApiRef.current = api} initValues={initValues} labelPosition="left" labelWidth={90}>
           <Form.Input
             field="name"
             label="角色名称"
@@ -178,9 +186,11 @@ export default function Roles() {
             {menuTree.length > 0 ? (
               <Tree
                 treeData={menuTree}
-                checkable
+                multiple
+                expandAll
+                autoMergeValue={false}
                 value={checkedMenus}
-                onChange={(vals) => setCheckedMenus(vals.map(String))}
+                onChange={(vals) => setCheckedMenus(normalizeCheckedMenuIds(vals))}
                 style={{ width: '100%' }}
               />
             ) : (

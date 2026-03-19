@@ -112,7 +112,7 @@ def init_auth_routes(db, models):
                 return jsonify({"error": "用户不存在"}), 404
 
             if not admin.check_password(old_password):
-                return jsonify({"error": "旧密码错误"}), 401
+                return jsonify({"error": "旧密码错误"}), 400
 
             admin.set_password(new_password)
             db.session.commit()

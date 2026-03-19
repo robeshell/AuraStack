@@ -3,7 +3,7 @@
 后台管理 - 用户管理模块
 """
 from flask import jsonify, request, session
-from backend.utils import login_required, menu_permission_required
+from backend.utils import login_required
 from . import bp
 
 
@@ -12,11 +12,20 @@ def init_users_routes(db, models):
     Admin = models['Admin']
     Role = models['Role']
 
+    def has_permission(code):
+        username = session.get('username')
+        if not username:
+            return False
+        user = Admin.query.filter_by(username=username).first()
+        return bool(user and user.has_menu_code_access(code))
+
     @bp.route('/api/admin/users', methods=['GET', 'POST'])
     @login_required
-    @menu_permission_required('system_users_add')
     def manage_users():
         if request.method == 'GET':
+            if not has_permission('system_users'):
+                return jsonify({'error': '无权限查看用户列表'}), 403
+
             page = request.args.get('page', 1, type=int)
             per_page = request.args.get('per_page', 20, type=int)
             search = request.args.get('search', '').strip()
@@ -30,6 +39,9 @@ def init_users_routes(db, models):
                 'items': [u.to_dict() for u in pagination.items],
                 'total': pagination.total
             })
+
+        if not has_permission('system_users_add'):
+            return jsonify({'error': '无权限新增用户'}), 403
 
         data = request.json
         if not data.get('username') or not data.get('password'):

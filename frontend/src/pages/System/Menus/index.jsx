@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Table, Button, Modal, Form, Toast,
-  Popconfirm, Tag, Space, Typography,
+  Popconfirm, Tag, Space, Typography, Tooltip,
 } from '@douyinfe/semi-ui'
 import { IconPlus } from '@douyinfe/semi-icons'
 import { getMenus, createMenu, updateMenu, deleteMenu } from '../../../api/menus'
@@ -28,7 +28,7 @@ export default function Menus() {
   const [editRecord, setEditRecord] = useState(null)
   const [parentOptions, setParentOptions] = useState([])
   const [submitting, setSubmitting] = useState(false)
-  const formRef = useRef()
+  const formApiRef = useRef()
 
   const fetchData = () => {
     setLoading(true)
@@ -58,7 +58,7 @@ export default function Menus() {
   }
 
   const handleSubmit = () => {
-    formRef.current.validate().then((values) => {
+    formApiRef.current.validate().then((values) => {
       setSubmitting(true)
       const fn = editRecord?.id
         ? updateMenu(editRecord.id, values)
@@ -101,6 +101,7 @@ export default function Menus() {
       ),
     },
     { title: '路径', dataIndex: 'path' },
+    { title: '组件', dataIndex: 'component', width: 130 },
     { title: '图标', dataIndex: 'icon', width: 90 },
     { title: '排序', dataIndex: 'sort_order', width: 60 },
     {
@@ -170,10 +171,10 @@ export default function Menus() {
         onCancel={() => setModalVisible(false)}
         okButtonProps={{ loading: submitting }}
         width={560}
-        afterClose={() => formRef.current?.setValues({})}
+        afterClose={() => formApiRef.current?.reset()}
       >
         <Form
-          ref={formRef}
+          getFormApi={api => formApiRef.current = api}
           initValues={initValues}
           labelPosition="left"
           labelWidth={80}
@@ -202,11 +203,23 @@ export default function Menus() {
             showClear
           />
           <Form.Input field="path" label="路径" placeholder="/example" />
+          <Form.Input
+            field="component"
+            label="组件"
+            placeholder="例如：Users、Roles、Dashboard"
+          />
           <Form.Input field="icon" label="图标" placeholder="图标名称" />
           <Form.InputNumber field="sort_order" label="排序" min={0} />
           <Form.Switch field="is_visible" label="显示" />
           <Form.Switch field="is_active" label="启用" />
         </Form>
+        <div style={{ marginTop: 8 }}>
+          <Tooltip content="组件名需要对应 frontend/src/pages/**/index.jsx 的目录名，例如 Users -> /pages/System/Users/index.jsx">
+            <Typography.Text type="tertiary" size="small">
+              提示：动态路由模式下，菜单的路径和组件名都需要配置
+            </Typography.Text>
+          </Tooltip>
+        </div>
       </Modal>
     </div>
   )

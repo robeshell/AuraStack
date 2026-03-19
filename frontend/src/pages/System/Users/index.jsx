@@ -182,6 +182,7 @@ export default function Users() {
             optionList={roles.map((r) => ({ label: r.name, value: r.id }))}
             style={{ width: '100%' }}
             placeholder="请选择角色"
+            disabled={editRecord?.username === 'admin'}
           />
         </Form>
       </Modal>

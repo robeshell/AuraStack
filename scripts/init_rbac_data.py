@@ -21,6 +21,21 @@ except Exception as e:
     sys.exit(1)
 
 
+def sync_postgres_id_sequence(table_name):
+    """同步 PostgreSQL 表的主键序列到当前最大 id"""
+    if db.engine.dialect.name != 'postgresql':
+        return
+    db.session.execute(db.text(f"""
+        SELECT setval(
+            pg_get_serial_sequence('{table_name}', 'id'),
+            COALESCE((SELECT MAX(id) FROM {table_name}), 0) + 1,
+            false
+        )
+    """))
+    db.session.commit()
+    print(f"  已同步序列: {table_name}.id")
+
+
 def clear_rbac_data():
     """清空RBAC相关数据"""
     Admin = models['Admin']
@@ -140,6 +155,9 @@ def init_menus():
         print(f"菜单初始化完成，新增 {added_count} 项\n")
     else:
         print("所有菜单已存在，无需新增\n")
+
+    # 兼容显式写入固定 id 后序列未自动推进的问题
+    sync_postgres_id_sequence('menus')
 
 
 def init_roles():

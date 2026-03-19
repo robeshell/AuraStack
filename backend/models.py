@@ -41,7 +41,15 @@ def init_models(db):
                 'created_at': self.created_at.isoformat() if self.created_at else None
             }
             if include_menus:
-                result['menu_ids'] = [m.id for m in self.menus]
+                sorted_menus = sorted(self.menus, key=lambda m: (m.sort_order or 0, m.id))
+                result['menu_ids'] = [m.id for m in sorted_menus]
+                result['menus'] = [{
+                    'id': m.id,
+                    'name': m.name,
+                    'code': m.code,
+                    'parent_id': m.parent_id,
+                    'menu_type': m.menu_type,
+                } for m in sorted_menus]
             return result
 
     class Admin(db.Model):

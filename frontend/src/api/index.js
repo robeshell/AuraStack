@@ -9,7 +9,12 @@ const request = axios.create({
 request.interceptors.response.use(
   (res) => res.data,
   (err) => {
-    if (err.response?.status === 401 && window.location.pathname !== '/login') {
+    const shouldRedirectToLogin =
+      err.response?.status === 401 &&
+      Boolean(err.response?.data?.redirect) &&
+      window.location.pathname !== '/login'
+
+    if (shouldRedirectToLogin) {
       window.location.href = '/login'
     }
     return Promise.reject(err.response?.data || err)
