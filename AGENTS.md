@@ -13,6 +13,8 @@ This repository uses **intent-driven delivery**:
 - Frontend: React 18 + Vite + React Router + Axios
 - UI Library: Semi Design (`@douyinfe/semi-ui`, `@douyinfe/semi-icons`)
 - Import/Export: `openpyxl` / `xlrd` / `xlwt`
+- Migrations directory: `backend/migrations/`
+- Engineering scripts: `backend/scripts/`
 
 ## MCP-First Reading Rule
 
@@ -28,26 +30,31 @@ When user says "做XX功能", the agent must complete this chain:
    - Read existing related modules before creating new files.
    - Reuse existing naming and route conventions.
 2. **Backend implementation**
-   - Add/update route handlers under `backend/routes/admin/`.
-   - Register module in `backend/routes/admin/__init__.py` if new.
-   - Update model/migration when schema changes.
+   - Implement under layered module structure: `backend/app/<domain>/{api,service,crud,model,schema}`.
+   - Register module routes in `backend/app/<domain>/api/router.py`.
+   - If introducing a new first-level domain, wire it in `backend/app/router.py` and `backend/app/__init__.py`.
+   - Update model entities and migration when schema changes.
 3. **Frontend implementation**
    - Add/update page component under `frontend/src/pages/**/index.jsx`.
    - Add API client under `frontend/src/api/`.
    - Ensure menu path/component can be resolved by dynamic routing (`frontend/src/App.jsx`).
+   - Prefer reusing existing import/export components under `frontend/src/components/ImportExport/`.
    - If the module has import/export, follow the existing import/export implementation pattern already used in this project.
 4. **RBAC integration**
    - Add module menu + button permissions.
-   - Update `scripts/init_rbac_data.py` seed data.
-   - After any menu/permission change, run `python3 scripts/init_rbac_data.py --incremental`.
+   - Update `backend/scripts/init_rbac_data.py` seed data.
+   - After any menu/permission change, run `python3 backend/scripts/init_rbac_data.py --incremental`.
    - This incremental sync must include super-admin permission refresh, otherwise new features may be invisible in UI.
 5. **API docs pipeline**
    - Update `docs/apifox-full.openapi.json`.
-   - Keep `scripts/import_openapi_to_apifox.py` runnable.
+   - Keep `backend/scripts/import_openapi_to_apifox.py` runnable.
 6. **Verification**
    - Run compile/build checks.
-   - Run `python3 scripts/verify_feature.py --module <module>` when applicable.
+   - Run `python3 backend/scripts/verify_feature.py --module <module>` when applicable.
    - For import/export features, verify the implementation is consistent with existing project behavior and interaction pattern.
+7. **Delivery guidance**
+   - Always tell the user the next executable steps after feature delivery.
+   - If schema/migration changed, explicitly remind the user to run `flask db upgrade -d backend/migrations`.
 
 ## Clarification Policy
 
@@ -64,5 +71,6 @@ Deliver results in this order:
 
 1. What changed (files)
 2. What user can test now
-3. Any assumptions made
-4. Optional next-step options
+3. Next steps user should run now (commands)
+4. Any assumptions made
+5. Optional next-step options

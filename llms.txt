@@ -7,20 +7,20 @@ Product managers provide only natural-language intent. Agents perform end-to-end
 
 - [Agent Rules](./AGENTS.md)
 - [OpenAPI Source](./docs/apifox-full.openapi.json)
-- [Apifox Push Script](./scripts/import_openapi_to_apifox.py)
-- [RBAC Seed Script](./scripts/init_rbac_data.py)
-- [Feature Verification Script](./scripts/verify_feature.py)
+- [Apifox Push Script](./backend/scripts/import_openapi_to_apifox.py)
+- [RBAC Seed Script](./backend/scripts/init_rbac_data.py)
+- [Feature Verification Script](./backend/scripts/verify_feature.py)
 - [Semi MCP Skill](./.agents/skills/semi-ui-skills/SKILL.md)
 
 ## Backend Structure
 
-- Admin routes bootstrap: `backend/routes/admin/__init__.py`
-- Auth: `backend/routes/admin/auth.py`
-- Users: `backend/routes/admin/users.py`
-- Roles: `backend/routes/admin/roles.py`
-- Menus: `backend/routes/admin/menus.py`
-- Logs: `backend/routes/admin/logs.py`
-- Models: `backend/models.py`
+- App bootstrap: `backend/app/__init__.py`
+- Global route assembler: `backend/app/router.py`
+- Domain modules: `backend/app/admin/`, `backend/app/data_management/`
+- Per-domain layers: `api/`, `service/`, `crud/`, `model/`, `schema/`
+- Database migrations: `backend/migrations/`
+- Engineering scripts: `backend/scripts/`
+- Shared capabilities: `backend/common/`
 
 ## Tech Stack
 
@@ -39,6 +39,7 @@ Product managers provide only natural-language intent. Agents perform end-to-end
 
 - Dynamic routes: `frontend/src/App.jsx`
 - Layout/nav: `frontend/src/components/Layout/index.jsx`
+- Shared import/export UI: `frontend/src/components/ImportExport/*`
 - API clients: `frontend/src/api/*.js`
 - Pages: `frontend/src/pages/**/index.jsx`
 
@@ -49,8 +50,10 @@ Any new module/feature should include:
 1. Backend route implementation and registration.
 2. Frontend page + API client + menu routing.
 3. RBAC menu/button permissions and seed updates.
-4. Run `python3 scripts/init_rbac_data.py --incremental` to sync menus and refresh super-admin permissions.
+4. Run `python3 backend/scripts/init_rbac_data.py --incremental` to sync menus and refresh super-admin permissions.
 5. Migration script(s) when schema changes.
 6. OpenAPI JSON update and optional Apifox push.
 7. Build/compile verification.
 8. If import/export is implemented: follow the existing import/export pattern already used in this project.
+9. If migration/schema changed: explicitly tell user to run `flask db upgrade -d backend/migrations`.
+10. Every delivery must include a concise "next steps" command checklist for the user.

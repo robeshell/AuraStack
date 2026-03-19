@@ -23,6 +23,10 @@ class Config:
         r"/api/*": {"origins": "*"}
     }
 
+    # 定时任务调度
+    ENABLE_TASK_SCHEDULER = os.environ.get('ENABLE_TASK_SCHEDULER', 'true')
+    TASK_SCHEDULER_INTERVAL_SECONDS = int(os.environ.get('TASK_SCHEDULER_INTERVAL_SECONDS', '20'))
+
 
 class DevelopmentConfig(Config):
     """开发环境配置"""

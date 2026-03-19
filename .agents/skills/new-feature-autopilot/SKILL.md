@@ -29,25 +29,30 @@ Deliver a usable feature from intent only:
 3. Scan existing modules
    - Prefer extending existing modules over creating duplicates.
 4. Implement backend
-   - Add route file under `backend/routes/admin/` or extend existing file.
-   - Register routes in `backend/routes/admin/__init__.py` if new module.
-   - Add model and migration when data shape changes.
+   - Follow layered module structure: `backend/app/<domain>/{api,service,crud,model,schema}`.
+   - Register module routes in `backend/app/<domain>/api/router.py`.
+   - If introducing a new first-level domain, wire it in `backend/app/router.py` and `backend/app/__init__.py`.
+   - Add/update model entities and migration when data shape changes.
 5. Implement frontend
    - Add page under `frontend/src/pages/**/index.jsx`.
    - Add API file under `frontend/src/api/`.
    - Ensure menu `path` + `component` are compatible with dynamic routing.
+   - Prefer reusing `frontend/src/components/ImportExport/*` for import/export UX.
    - If module includes import/export, follow the existing import/export implementation pattern already used in this project.
 6. Integrate permissions
    - Add menu/button permission codes.
-   - Update `scripts/init_rbac_data.py`.
-   - Always run `python3 scripts/init_rbac_data.py --incremental` after permission/menu changes.
+   - Update `backend/scripts/init_rbac_data.py`.
+   - Always run `python3 backend/scripts/init_rbac_data.py --incremental` after permission/menu changes.
    - The incremental mode must refresh super-admin permissions so new pages are immediately visible.
 7. Update API docs
    - Edit `docs/apifox-full.openapi.json`.
 8. Verify
    - Run backend compile checks.
    - Run frontend `npm run build`.
-   - Optionally run `python3 scripts/verify_feature.py --module <module>`.
+   - Optionally run `python3 backend/scripts/verify_feature.py --module <module>`.
+9. Deliver handoff
+   - Always provide a short "next steps" command list for the user.
+   - If migration/schema changed, explicitly include `flask db upgrade -d backend/migrations` in next steps.
 
 ## Defaults (when user does not specify)
 

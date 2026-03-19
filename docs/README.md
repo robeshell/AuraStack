@@ -3,7 +3,7 @@
 当前模式与 `map1.huodaitianyan.com` 一致：
 
 - `docs/apifox-full.openapi.json` 是接口文档源文件（OpenAPI）
-- `scripts/import_openapi_to_apifox.py` 只负责把该文件推送到 Apifox
+- `backend/scripts/import_openapi_to_apifox.py` 只负责把该文件推送到 Apifox
 
 ## 导入到 Apifox（覆盖导入）
 
@@ -17,7 +17,7 @@ export APIFOX_ACCESS_TOKEN='<你的访问令牌>'
 执行导入：
 
 ```bash
-./venv/bin/python scripts/import_openapi_to_apifox.py \
+./venv/bin/python backend/scripts/import_openapi_to_apifox.py \
   --spec-file docs/apifox-full.openapi.json \
   --endpoint-overwrite-behavior OVERWRITE_EXISTING \
   --schema-overwrite-behavior OVERWRITE_EXISTING

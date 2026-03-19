@@ -10,9 +10,9 @@ from flask_caching import Cache
 from flask_migrate import Migrate
 from config import get_config
 from backend import db
-from backend.models import init_models
-from backend.utils import CustomJSONEncoder
-from backend.routes.admin import init_admin_routes
+from backend.app import init_models, init_app_routes
+from backend.common.scheduler import init_scheduled_task_runner
+from backend.common.json_encoder import CustomJSONEncoder
 from datetime import datetime
 import os
 import sys
@@ -56,12 +56,13 @@ db.init_app(app)
 with app.app_context():
     models = init_models(db)
 
-# 初始化数据库迁移
-migrate = Migrate(app, db)
+# 初始化数据库迁移（目录迁移到 backend/migrations）
+migrate = Migrate(app, db, directory='backend/migrations')
 
 # 注册路由蓝图
-admin_bp = init_admin_routes(db, models)
-app.register_blueprint(admin_bp)
+app_bp = init_app_routes(db, models)
+app.register_blueprint(app_bp)
+init_scheduled_task_runner(app, db, models)
 
 
 @app.after_request
