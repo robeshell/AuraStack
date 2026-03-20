@@ -32,6 +32,7 @@ Deliver a usable feature from intent only:
    - Follow layered module structure: `backend/app/<domain>/{api,service,crud,model,schema}`.
    - Register module routes in `backend/app/<domain>/api/router.py`.
    - If introducing a new first-level domain, wire it in `backend/app/router.py` and `backend/app/__init__.py`.
+   - Use unified permission helpers from `backend/common/auth.py`; do not create local `has_permission` in API files.
    - Add/update model entities and migration when data shape changes.
 5. Implement frontend
    - Add page under `frontend/src/modules/**/pages/**/index.jsx`.

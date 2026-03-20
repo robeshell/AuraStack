@@ -123,6 +123,28 @@ def verify_module(module: str, errors: list[str], warnings: list[str]) -> None:
             )
 
 
+def check_permission_helper_consistency(warnings: list[str]) -> None:
+    api_root = ROOT / "backend" / "app"
+    if not api_root.exists():
+        return
+
+    legacy_files: list[str] = []
+    for path in sorted(api_root.rglob("*.py")):
+        normalized = path.as_posix()
+        if "/api/" not in normalized:
+            continue
+        content = path.read_text(encoding="utf-8")
+        if "def has_permission(" in content:
+            legacy_files.append(str(path.relative_to(ROOT)))
+
+    if legacy_files:
+        warnings.append(
+            "Found local `has_permission` definitions in API layer; "
+            "please use unified helpers from `backend/common/auth.py`: "
+            + ", ".join(legacy_files)
+        )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Verify feature/module integration in AuraStack.")
     parser.add_argument("--module", help="Module name in snake_case, e.g. notifications")
@@ -139,6 +161,7 @@ def main() -> int:
 
     if args.module:
         verify_module(args.module, errors, warnings)
+    check_permission_helper_consistency(warnings)
 
     print("== AuraStack feature verification ==")
 
