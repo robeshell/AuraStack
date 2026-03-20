@@ -10,11 +10,13 @@ import {
   Table,
   Tag,
   Toast,
-  Typography,
+  Typography
 } from '@douyinfe/semi-ui'
 import { IconPlus, IconRefresh, IconSearch } from '@douyinfe/semi-icons'
 import ExportFieldsModal from '../../../../shared/components/import-export/ExportFieldsModal'
 import ImportCsvModal from '../../../../shared/components/import-export/ImportCsvModal'
+import FileUploadField from '../../../../shared/components/upload/FileUploadField'
+import ImageUploadField from '../../../../shared/components/upload/ImageUploadField'
 import { downloadBlobFile } from '../../../../shared/utils/file'
 import {
   createQueryManagement,
@@ -23,6 +25,8 @@ import {
   exportQueryManagement,
   getQueryManagementList,
   importQueryManagement,
+  uploadQueryManagementFile,
+  uploadQueryManagementImage,
   updateQueryManagement,
 } from '../../api/query_management'
 
@@ -56,6 +60,10 @@ const QUERY_EXPORT_FIELDS = [
   { label: '关键字', value: 'keyword' },
   { label: '数据源', value: 'data_source' },
   { label: '负责人', value: 'owner' },
+  { label: '图片URL', value: 'image_url' },
+  { label: '图片URL列表', value: 'image_urls' },
+  { label: '文件URL', value: 'file_url' },
+  { label: '文件URL列表', value: 'file_urls' },
   { label: '优先级', value: 'priority' },
   { label: '状态', value: 'is_active' },
   { label: '描述', value: 'description' },
@@ -65,6 +73,73 @@ const QUERY_EXPORT_FIELDS = [
 
 const normalizeFileType = (raw) => (['csv', 'xls', 'xlsx'].includes(raw) ? raw : 'xlsx')
 const formatDateTime = (value) => (value ? value.slice(0, 19).replace('T', ' ') : '-')
+const MAX_QUERY_IMAGE_COUNT = 9
+const MAX_QUERY_FILE_COUNT = 20
+
+const normalizeUrlList = (raw) => {
+  if (Array.isArray(raw)) {
+    return raw.map((item) => String(item || '').trim()).filter(Boolean)
+  }
+  if (typeof raw === 'string') {
+    const value = raw.trim()
+    if (!value) {
+      return []
+    }
+    try {
+      const parsed = JSON.parse(value)
+      if (Array.isArray(parsed)) {
+        return parsed.map((item) => String(item || '').trim()).filter(Boolean)
+      }
+    } catch (error) {
+      // ignore json parse error and fallback to plain text split
+    }
+    if (value.includes(',') || value.includes('，') || value.includes(';') || value.includes('；') || value.includes('\n')) {
+      return value
+        .replaceAll('，', ',')
+        .replaceAll('；', ';')
+        .replaceAll('\n', ';')
+        .split(/[;,]/)
+        .map((item) => item.trim())
+        .filter(Boolean)
+    }
+    return [value]
+  }
+  return []
+}
+
+const pickRecordImageUrls = (record) => {
+  const urls = normalizeUrlList(record?.image_urls)
+  if (urls.length > 0) {
+    return urls
+  }
+  return normalizeUrlList(record?.image_url)
+}
+
+const pickRecordFileUrls = (record) => {
+  const urls = normalizeUrlList(record?.file_urls)
+  if (urls.length > 0) {
+    return urls
+  }
+  return normalizeUrlList(record?.file_url)
+}
+
+const buildUploadFileList = (urls = [], seed = 'default', namePrefix = '资源') => {
+  return normalizeUrlList(urls).map((url, index) => ({
+    uid: `query-upload-${seed}-${index + 1}`,
+    name: `${namePrefix}${index + 1}`,
+    status: 'success',
+    preview: true,
+    url,
+  }))
+}
+
+const extractUploadedUrls = (fileList = []) => {
+  return (fileList || [])
+    .filter((item) => item?.status === 'success')
+    .map((item) => item?.url || item?.response?.url || '')
+    .map((item) => String(item || '').trim())
+    .filter(Boolean)
+}
 
 const mapCategoryLabel = (value) => {
   const matched = CATEGORY_OPTIONS.find((item) => item.value === value)
@@ -91,6 +166,8 @@ export default function QueryManagement() {
   const [modalVisible, setModalVisible] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [editRecord, setEditRecord] = useState(null)
+  const [imageFileList, setImageFileList] = useState([])
+  const [attachmentFileList, setAttachmentFileList] = useState([])
 
   const [selectedRowKeys, setSelectedRowKeys] = useState([])
   const [exportModalVisible, setExportModalVisible] = useState(false)
@@ -153,16 +230,22 @@ export default function QueryManagement() {
 
   const openCreate = () => {
     setEditRecord(null)
+    setImageFileList([])
+    setAttachmentFileList([])
     setModalVisible(true)
   }
 
   const openEdit = (record) => {
     setEditRecord(record)
+    setImageFileList(buildUploadFileList(pickRecordImageUrls(record), `img-${record?.id || 'edit'}`, '查询图片'))
+    setAttachmentFileList(buildUploadFileList(pickRecordFileUrls(record), `file-${record?.id || 'edit'}`, '查询附件'))
     setModalVisible(true)
   }
 
   const handleSubmit = () => {
     formApiRef.current.validate().then((values) => {
+      const imageUrls = extractUploadedUrls(imageFileList)
+      const fileUrls = extractUploadedUrls(attachmentFileList)
       const payload = {
         ...values,
         query_code: (values.query_code || '').trim(),
@@ -171,6 +254,10 @@ export default function QueryManagement() {
         owner: (values.owner || '').trim(),
         data_source: (values.data_source || '').trim(),
         description: (values.description || '').trim(),
+        image_url: imageUrls[0] || '',
+        image_urls: imageUrls,
+        file_url: fileUrls[0] || '',
+        file_urls: fileUrls,
       }
       setSubmitting(true)
       const req = editRecord?.id
@@ -235,6 +322,43 @@ export default function QueryManagement() {
     { title: '关键字', dataIndex: 'keyword', width: 180, render: (value) => value || '-' },
     { title: '数据源', dataIndex: 'data_source', width: 140, render: (value) => value || '-' },
     { title: '负责人', dataIndex: 'owner', width: 100, render: (value) => value || '-' },
+    {
+      title: '图片',
+      dataIndex: 'image_url',
+      width: 140,
+      render: (value, record) => {
+        const urls = pickRecordImageUrls(record)
+        const previewUrl = urls[0] || value
+        if (!previewUrl) {
+          return '-'
+        }
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <img
+              src={previewUrl}
+              alt="查询图片"
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 6,
+                objectFit: 'cover',
+                border: '1px solid var(--semi-color-border)',
+              }}
+            />
+            <Typography.Text type="tertiary">{urls.length} 张</Typography.Text>
+          </div>
+        )
+      },
+    },
+    {
+      title: '附件',
+      dataIndex: 'file_urls',
+      width: 110,
+      render: (_, record) => {
+        const urls = pickRecordFileUrls(record)
+        return urls.length > 0 ? `${urls.length} 个` : '-'
+      },
+    },
     { title: '优先级', dataIndex: 'priority', width: 80 },
     {
       title: '状态',
@@ -266,6 +390,10 @@ export default function QueryManagement() {
     category: 'general',
     priority: 0,
     is_active: true,
+    image_url: '',
+    image_urls: [],
+    file_url: '',
+    file_urls: [],
   }
 
   return (
@@ -359,7 +487,11 @@ export default function QueryManagement() {
         onOk={handleSubmit}
         okButtonProps={{ loading: submitting }}
         width={560}
-        afterClose={() => formApiRef.current?.reset()}
+        afterClose={() => {
+          formApiRef.current?.reset()
+          setImageFileList([])
+          setAttachmentFileList([])
+        }}
       >
         <Form getFormApi={(api) => { formApiRef.current = api }} initValues={initValues} labelPosition="left" labelWidth={95}>
           <Form.Input
@@ -383,6 +515,30 @@ export default function QueryManagement() {
           <Form.Input field="keyword" label="关键字" placeholder="多个关键字用逗号分隔" />
           <Form.Input field="data_source" label="数据源" placeholder="例如：orders" />
           <Form.Input field="owner" label="负责人" placeholder="例如：admin" />
+          <Form.Slot label="查询图片">
+            <ImageUploadField
+              fileList={imageFileList}
+              onFileListChange={setImageFileList}
+              uploadApi={uploadQueryManagementImage}
+              limit={MAX_QUERY_IMAGE_COUNT}
+              accept=".jpg,.jpeg,.png,.gif,.webp"
+              maxSizeMB={5}
+              promptText={`照片墙上传，最多 ${MAX_QUERY_IMAGE_COUNT} 张，支持 JPG/PNG/GIF/WEBP，最大 5MB`}
+              imageSize={120}
+            />
+          </Form.Slot>
+          <Form.Slot label="查询附件">
+            <FileUploadField
+              fileList={attachmentFileList}
+              onFileListChange={setAttachmentFileList}
+              uploadApi={uploadQueryManagementFile}
+              limit={MAX_QUERY_FILE_COUNT}
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.md,.zip,.rar,.7z,.json,.ppt,.pptx"
+              maxSizeMB={20}
+              promptText={`最多 ${MAX_QUERY_FILE_COUNT} 个附件，支持文档/表格/压缩包，最大 20MB`}
+              triggerText="上传附件"
+            />
+          </Form.Slot>
           <Form.InputNumber field="priority" label="优先级" min={0} max={9999} />
           <Form.Switch field="is_active" label="启用" />
           <Form.TextArea field="description" label="描述" rows={3} maxCount={500} />

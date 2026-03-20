@@ -1,6 +1,39 @@
 # -*- coding: utf-8 -*-
 """查询管理 schema 层"""
 
+import json
+
+
+def export_image_urls(item):
+    raw = getattr(item, 'image_urls', None)
+    urls = []
+    if raw:
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, list):
+                urls = [str(v).strip() for v in parsed if str(v).strip()]
+        except Exception:
+            urls = []
+    if not urls and getattr(item, 'image_url', None):
+        urls = [item.image_url]
+    return ','.join(urls)
+
+
+def export_file_urls(item):
+    raw = getattr(item, 'file_urls', None)
+    urls = []
+    if raw:
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, list):
+                urls = [str(v).strip() for v in parsed if str(v).strip()]
+        except Exception:
+            urls = []
+    if not urls and getattr(item, 'file_url', None):
+        urls = [item.file_url]
+    return ','.join(urls)
+
+
 EXPORT_FIELD_MAP = {
     'id': ('ID', lambda item: item.id),
     'name': ('查询名称', lambda item: item.name),
@@ -9,6 +42,10 @@ EXPORT_FIELD_MAP = {
     'keyword': ('关键字', lambda item: item.keyword or ''),
     'data_source': ('数据源', lambda item: item.data_source or ''),
     'owner': ('负责人', lambda item: item.owner or ''),
+    'image_url': ('图片URL', lambda item: item.image_url or ''),
+    'image_urls': ('图片URL列表', export_image_urls),
+    'file_url': ('文件URL', lambda item: item.file_url or ''),
+    'file_urls': ('文件URL列表', export_file_urls),
     'priority': ('优先级', lambda item: item.priority if item.priority is not None else 0),
     'is_active': ('状态', lambda item: '启用' if item.is_active else '停用'),
     'description': ('描述', lambda item: item.description or ''),
@@ -23,6 +60,12 @@ IMPORT_HEADER_MAP = {
     '关键字': 'keyword',
     '数据源': 'data_source',
     '负责人': 'owner',
+    '图片URL列表': 'image_urls',
+    '图片URL': 'image_url',
+    '图片': 'image_url',
+    '文件URL列表': 'file_urls',
+    '文件URL': 'file_url',
+    '文件': 'file_url',
     '优先级': 'priority',
     '状态': 'is_active',
     '描述': 'description',
@@ -32,6 +75,10 @@ IMPORT_HEADER_MAP = {
     'keyword': 'keyword',
     'data_source': 'data_source',
     'owner': 'owner',
+    'image_urls': 'image_urls',
+    'image_url': 'image_url',
+    'file_urls': 'file_urls',
+    'file_url': 'file_url',
     'priority': 'priority',
     'is_active': 'is_active',
     'description': 'description',

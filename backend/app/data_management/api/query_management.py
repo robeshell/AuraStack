@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """查询管理 API 层"""
 
-from flask import jsonify, request, session
+from flask import jsonify, request, send_from_directory, session
 
 from backend.common.auth import login_required
 from backend.app.data_management.model.query_management import get_admin_model, get_query_management_model
@@ -113,5 +113,51 @@ def init_query_management_api(bp, db, models):
 
         try:
             return jsonify(service.import_items(request.files.get('file')))
+        except QueryManagementServiceError as e:
+            return handle_service_error(e)
+
+    @bp.route('/api/admin/query-management/upload-image', methods=['POST'])
+    @login_required
+    def upload_query_management_image():
+        if not (has_permission('system_query_management_add') or has_permission('system_query_management_edit')):
+            return jsonify({'error': '无权限上传查询图片'}), 403
+
+        try:
+            return jsonify(service.save_image(request.files.get('file')))
+        except QueryManagementServiceError as e:
+            return handle_service_error(e)
+
+    @bp.route('/api/admin/query-management/image/<path:filename>', methods=['GET'])
+    @login_required
+    def query_management_image(filename):
+        if not has_permission('system_query_management'):
+            return jsonify({'error': '无权限查看查询图片'}), 403
+
+        try:
+            safe_name = service.sanitize_image_filename(filename)
+            return send_from_directory(service.get_image_upload_dir(), safe_name)
+        except QueryManagementServiceError as e:
+            return handle_service_error(e)
+
+    @bp.route('/api/admin/query-management/upload-file', methods=['POST'])
+    @login_required
+    def upload_query_management_file():
+        if not (has_permission('system_query_management_add') or has_permission('system_query_management_edit')):
+            return jsonify({'error': '无权限上传查询附件'}), 403
+
+        try:
+            return jsonify(service.save_file(request.files.get('file')))
+        except QueryManagementServiceError as e:
+            return handle_service_error(e)
+
+    @bp.route('/api/admin/query-management/file/<path:filename>', methods=['GET'])
+    @login_required
+    def query_management_file(filename):
+        if not has_permission('system_query_management'):
+            return jsonify({'error': '无权限查看查询附件'}), 403
+
+        try:
+            safe_name = service.sanitize_image_filename(filename)
+            return send_from_directory(service.get_file_upload_dir(), safe_name, as_attachment=True)
         except QueryManagementServiceError as e:
             return handle_service_error(e)

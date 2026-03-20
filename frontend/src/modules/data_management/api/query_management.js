@@ -22,3 +22,27 @@ export const importQueryManagement = (file) => {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
 }
+
+export const uploadQueryManagementImage = (file) => {
+  const uploadFile = file?.fileInstance || file
+  if (!uploadFile) {
+    return Promise.reject(new Error('请先选择图片文件'))
+  }
+  const formData = new FormData()
+  formData.append('file', uploadFile, uploadFile?.name || 'query-image')
+  return request.post('/admin/query-management/upload-image', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+}
+
+export const uploadQueryManagementFile = (file) => {
+  const uploadFile = file?.fileInstance || file
+  if (!uploadFile) {
+    return Promise.reject(new Error('请先选择文件'))
+  }
+  const formData = new FormData()
+  formData.append('file', uploadFile, uploadFile?.name || 'query-file')
+  return request.post('/admin/query-management/upload-file', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+}
