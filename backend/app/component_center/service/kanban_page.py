@@ -2,6 +2,7 @@
 """看板页 service 层"""
 
 from datetime import date
+from sqlalchemy.exc import IntegrityError
 
 from backend.app.component_center.crud.kanban_page import KanbanPageCRUD
 from backend.app.component_center.schema.kanban_page import (
@@ -26,6 +27,24 @@ class KanbanPageService:
         self.KanbanCard = card_model
         self.crud = KanbanPageCRUD(db, board_model, card_model)
 
+    def _sync_postgres_id_sequence(self, table_name):
+        """当主键序列落后时，同步到当前 MAX(id)+1。"""
+        if self.db.engine.dialect.name != 'postgresql':
+            return
+        self.db.session.execute(self.db.text(f"""
+            SELECT setval(
+                pg_get_serial_sequence('{table_name}', 'id'),
+                COALESCE((SELECT MAX(id) FROM {table_name}), 0) + 1,
+                false
+            )
+        """))
+        self.db.session.commit()
+
+    @staticmethod
+    def _is_sequence_conflict(error, constraint_name):
+        raw = str(getattr(error, 'orig', error) or '')
+        return constraint_name in raw and 'duplicate key value violates unique constraint' in raw
+
     # ── 看板列 ──────────────────────────────────────────────────────────
 
     def get_all_boards(self):
@@ -42,21 +61,30 @@ class KanbanPageService:
         if self.crud.get_board_by_code(board_code):
             raise KanbanPageServiceError('列编码已存在')
 
-        board = self.KanbanBoard(
-            title=title,
-            board_code=board_code,
-            color=str(data.get('color') or '#4080FF').strip() or '#4080FF',
-            sort_order=parse_int(data.get('sort_order'), default=0),
-            wip_limit=parse_int(data.get('wip_limit'), default=0),
-            is_active=parse_bool(data.get('is_active'), default=True),
-        )
-        try:
-            self.crud.add(board)
-            self.crud.commit()
-            return board.to_dict(include_cards=True), 201
-        except Exception as e:
-            self.crud.rollback()
-            raise KanbanPageServiceError(str(e), 500) from e
+        payload = {
+            'title': title,
+            'board_code': board_code,
+            'color': str(data.get('color') or '#4080FF').strip() or '#4080FF',
+            'sort_order': parse_int(data.get('sort_order'), default=0),
+            'wip_limit': parse_int(data.get('wip_limit'), default=0),
+            'is_active': parse_bool(data.get('is_active'), default=True),
+        }
+
+        for attempt in range(2):
+            board = self.KanbanBoard(**payload)
+            try:
+                self.crud.add(board)
+                self.crud.commit()
+                return board.to_dict(include_cards=True), 201
+            except IntegrityError as e:
+                self.crud.rollback()
+                if attempt == 0 and self._is_sequence_conflict(e, 'kanban_boards_pkey'):
+                    self._sync_postgres_id_sequence('kanban_boards')
+                    continue
+                raise KanbanPageServiceError(str(e), 500) from e
+            except Exception as e:
+                self.crud.rollback()
+                raise KanbanPageServiceError(str(e), 500) from e
 
     def update_board(self, board, data):
         if 'title' in data and not str(data.get('title') or '').strip():
@@ -118,25 +146,34 @@ class KanbanPageService:
         if priority not in PRIORITY_VALUES:
             priority = 'medium'
 
-        card = self.KanbanCard(
-            board_id=board_id,
-            title=title,
-            card_code=card_code,
-            description=str(data.get('description') or '').strip() or None,
-            priority=priority,
-            assignee=str(data.get('assignee') or '').strip() or None,
-            due_date=self._parse_due_date(data.get('due_date')),
-            tags=str(data.get('tags') or '').strip() or None,
-            sort_order=parse_int(data.get('sort_order'), default=0),
-            is_active=parse_bool(data.get('is_active'), default=True),
-        )
-        try:
-            self.crud.add(card)
-            self.crud.commit()
-            return card.to_dict(), 201
-        except Exception as e:
-            self.crud.rollback()
-            raise KanbanPageServiceError(str(e), 500) from e
+        payload = {
+            'board_id': board_id,
+            'title': title,
+            'card_code': card_code,
+            'description': str(data.get('description') or '').strip() or None,
+            'priority': priority,
+            'assignee': str(data.get('assignee') or '').strip() or None,
+            'due_date': self._parse_due_date(data.get('due_date')),
+            'tags': str(data.get('tags') or '').strip() or None,
+            'sort_order': parse_int(data.get('sort_order'), default=0),
+            'is_active': parse_bool(data.get('is_active'), default=True),
+        }
+
+        for attempt in range(2):
+            card = self.KanbanCard(**payload)
+            try:
+                self.crud.add(card)
+                self.crud.commit()
+                return card.to_dict(), 201
+            except IntegrityError as e:
+                self.crud.rollback()
+                if attempt == 0 and self._is_sequence_conflict(e, 'kanban_cards_pkey'):
+                    self._sync_postgres_id_sequence('kanban_cards')
+                    continue
+                raise KanbanPageServiceError(str(e), 500) from e
+            except Exception as e:
+                self.crud.rollback()
+                raise KanbanPageServiceError(str(e), 500) from e
 
     def update_card(self, card, data):
         if 'title' in data and not str(data.get('title') or '').strip():

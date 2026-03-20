@@ -134,10 +134,26 @@ function KanbanCardItem({ card, onEdit, onDelete, isDragOverlay }) {
           <Dropdown
             trigger="click"
             position="bottomRight"
+            clickToHide
             render={
               <Dropdown.Menu>
-                <Dropdown.Item icon={<IconEdit />} onClick={() => onEdit(card)}>编辑</Dropdown.Item>
-                <Dropdown.Item icon={<IconDelete />} type="danger" onClick={() => onDelete(card)}>删除</Dropdown.Item>
+                <Dropdown.Item
+                  icon={<IconEdit />}
+                  onClick={() => {
+                    setTimeout(() => onEdit(card), 0)
+                  }}
+                >
+                  编辑
+                </Dropdown.Item>
+                <Dropdown.Item
+                  icon={<IconDelete />}
+                  type="danger"
+                  onClick={() => {
+                    setTimeout(() => onDelete(card), 0)
+                  }}
+                >
+                  删除
+                </Dropdown.Item>
               </Dropdown.Menu>
             }
           >
@@ -292,10 +308,26 @@ function KanbanColumn({ board, onEditBoard, onDeleteBoard, onAddCard, onEditCard
         <Dropdown
           trigger="click"
           position="bottomRight"
+          clickToHide
           render={
             <Dropdown.Menu>
-              <Dropdown.Item icon={<IconEdit />} onClick={() => onEditBoard(board)}>编辑列</Dropdown.Item>
-              <Dropdown.Item icon={<IconDelete />} type="danger" onClick={() => onDeleteBoard(board)}>删除列</Dropdown.Item>
+              <Dropdown.Item
+                icon={<IconEdit />}
+                onClick={() => {
+                  setTimeout(() => onEditBoard(board), 0)
+                }}
+              >
+                编辑列
+              </Dropdown.Item>
+              <Dropdown.Item
+                icon={<IconDelete />}
+                type="danger"
+                onClick={() => {
+                  setTimeout(() => onDeleteBoard(board), 0)
+                }}
+              >
+                删除列
+              </Dropdown.Item>
             </Dropdown.Menu>
           }
         >
@@ -338,12 +370,9 @@ function KanbanColumn({ board, onEditBoard, onDeleteBoard, onAddCard, onEditCard
 
 // ─── ColorPicker ──────────────────────────────────────────────────────
 function ColorPicker({ value, onChange }) {
-  const [sel, setSel] = useState(value || COLOR_PALETTE[0])
+  const sel = value || COLOR_PALETTE[0]
 
-  const pick = (c) => {
-    setSel(c)
-    onChange(c)
-  }
+  const pick = (c) => onChange(c)
 
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -379,6 +408,7 @@ export default function KanbanPage() {
   const [boardVisible, setBoardVisible] = useState(false)
   const [boardEditing, setBoardEditing] = useState(null)
   const [boardSubmitting, setBoardSubmitting] = useState(false)
+  const [boardColor, setBoardColor] = useState(COLOR_PALETTE[0])
   const boardFormApi = useRef(null)
 
   // card modal
@@ -414,16 +444,24 @@ export default function KanbanPage() {
   }, [boards])
 
   // ── board CRUD ─────────────────────────────────────────
-  const openCreateBoard = () => { setBoardEditing(null); setBoardVisible(true) }
-  const openEditBoard = (board) => { setBoardEditing(board); setBoardVisible(true) }
+  const openCreateBoard = () => {
+    setBoardEditing(null)
+    setBoardColor(COLOR_PALETTE[0])
+    setBoardVisible(true)
+  }
+  const openEditBoard = (board) => {
+    setBoardEditing(board)
+    setBoardColor(board?.color || COLOR_PALETTE[0])
+    setBoardVisible(true)
+  }
 
   const handleBoardOk = () => {
     boardFormApi.current.validate().then((values) => {
       setBoardSubmitting(true)
       const payload = {
-        title: values.title,
-        board_code: values.board_code,
-        color: values.color || '#4080FF',
+        title: (values.title || '').trim(),
+        board_code: (values.board_code || '').trim(),
+        color: boardColor || values.color || '#4080FF',
         wip_limit: Number(values.wip_limit) || 0,
         is_active: values.is_active !== false,
       }
@@ -467,13 +505,17 @@ export default function KanbanPage() {
         }
       }
       const payload = {
-        title: values.title,
+        title: (values.title || '').trim(),
         board_id: values.board_id,
+        card_code: (values.card_code || '').trim(),
         priority: values.priority || 'medium',
-        assignee: values.assignee || '',
+        assignee: (values.assignee || '').trim(),
         due_date: dueDate,
         tags: tagsToString(values.tags),
-        description: values.description || '',
+        description: (values.description || '').trim(),
+      }
+      if (cardEditing) {
+        delete payload.card_code
       }
       const req = cardEditing
         ? updateKanbanCard(cardEditing.id, payload)
@@ -662,6 +704,7 @@ export default function KanbanPage() {
         okButtonProps={{ loading: boardSubmitting }}
         afterClose={() => boardFormApi.current?.reset()}
         width={460}
+        keepDOM={false}
       >
         <Form
           key={boardEditing ? `eb-${boardEditing.id}` : 'nb'}
@@ -670,11 +713,11 @@ export default function KanbanPage() {
               ? {
                   title: boardEditing.title,
                   board_code: boardEditing.board_code,
-                  color: boardEditing.color || '#4080FF',
+                  color: boardColor || boardEditing.color || '#4080FF',
                   wip_limit: boardEditing.wip_limit || 0,
                   is_active: boardEditing.is_active !== false,
                 }
-              : { color: '#4080FF', wip_limit: 0, is_active: true }
+              : { color: boardColor, wip_limit: 0, is_active: true }
           }
           getFormApi={(api) => { boardFormApi.current = api }}
           labelPosition="left"
@@ -699,23 +742,15 @@ export default function KanbanPage() {
             placeholder="0 表示不限制"
           />
           <Form.Switch field="is_active" label="启用" />
+          <Form.Input field="color" style={{ display: 'none' }} />
           <Form.Slot label="列颜色">
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', paddingTop: 4 }}>
-              {COLOR_PALETTE.map((c) => (
-                <div
-                  key={c}
-                  onClick={() => boardFormApi.current?.setValue('color', c)}
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: '50%',
-                    background: c,
-                    cursor: 'pointer',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              ))}
-            </div>
+            <ColorPicker
+              value={boardColor}
+              onChange={(c) => {
+                setBoardColor(c)
+                boardFormApi.current?.setValue('color', c)
+              }}
+            />
           </Form.Slot>
         </Form>
       </Modal>
@@ -729,6 +764,7 @@ export default function KanbanPage() {
         okButtonProps={{ loading: cardSubmitting }}
         afterClose={() => cardFormApi.current?.reset()}
         width={520}
+        keepDOM={false}
       >
         <Form
           key={cardEditing ? `ec-${cardEditing.id}` : `nc-${cardDefaultBoardId}`}
@@ -736,6 +772,7 @@ export default function KanbanPage() {
             cardEditing
               ? {
                   title: cardEditing.title,
+                  card_code: cardEditing.card_code,
                   board_id: cardEditing.board_id,
                   priority: cardEditing.priority || 'medium',
                   assignee: cardEditing.assignee || '',
@@ -754,6 +791,13 @@ export default function KanbanPage() {
             label="卡片标题"
             placeholder="请输入卡片标题"
             rules={[{ required: true, message: '请输入卡片标题' }]}
+          />
+          <Form.Input
+            field="card_code"
+            label="卡片编码"
+            placeholder="如 task_001"
+            rules={[{ required: true, message: '请输入卡片编码' }]}
+            disabled={Boolean(cardEditing)}
           />
           <Form.Select
             field="board_id"
