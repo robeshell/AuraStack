@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """甘特图页 API 层"""
 
-from flask import jsonify, request, session
+from flask import jsonify, request
 
-from backend.common.auth import login_required
+from backend.common.auth import has_menu_permission, login_required
 from backend.app.component_center.model.gantt_page import (
-    get_admin_model,
     get_gantt_task_model,
 )
 from backend.app.component_center.service.gantt_page import (
@@ -15,18 +14,10 @@ from backend.app.component_center.service.gantt_page import (
 
 
 def init_gantt_page_api(bp, db, models):
-    Admin = get_admin_model(models)
     service = GanttPageService(
         db,
         get_gantt_task_model(models),
     )
-
-    def has_permission(code):
-        username = session.get('username')
-        if not username:
-            return False
-        user = Admin.query.filter_by(username=username).first()
-        return bool(user and user.has_menu_code_access(code))
 
     def handle_error(error):
         body = {'error': error.message}
@@ -39,13 +30,13 @@ def init_gantt_page_api(bp, db, models):
     @login_required
     def gantt_tasks():
         if request.method == 'GET':
-            if not has_permission('cc_admin_gantt_page'):
+            if not has_menu_permission('cc_admin_gantt_page'):
                 return jsonify({'error': '无权限'}), 403
             status = request.args.get('status', '').strip() or None
             priority = request.args.get('priority', '').strip() or None
             return jsonify(service.get_all_tasks(status=status, priority=priority))
 
-        if not has_permission('cc_admin_gantt_add'):
+        if not has_menu_permission('cc_admin_gantt_add'):
             return jsonify({'error': '无权限新建任务'}), 403
         try:
             payload, status_code = service.create_task(request.get_json() or {})
@@ -61,14 +52,14 @@ def init_gantt_page_api(bp, db, models):
         task = service.crud.get_task_or_404(task_id)
 
         if request.method == 'PUT':
-            if not has_permission('cc_admin_gantt_edit'):
+            if not has_menu_permission('cc_admin_gantt_edit'):
                 return jsonify({'error': '无权限编辑任务'}), 403
             try:
                 return jsonify(service.update_task(task, request.get_json() or {}))
             except GanttPageServiceError as e:
                 return handle_error(e)
 
-        if not has_permission('cc_admin_gantt_delete'):
+        if not has_menu_permission('cc_admin_gantt_delete'):
             return jsonify({'error': '无权限删除任务'}), 403
         try:
             return jsonify(service.delete_task(task))

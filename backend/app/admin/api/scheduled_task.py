@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """定时任务 API 层"""
 
-from flask import jsonify, request, session
+from flask import jsonify, request
 
-from backend.common.auth import login_required
+from backend.common.auth import has_menu_permission, login_required
 from backend.app.admin.model.scheduled_task import (
-    get_admin_model,
     get_scheduled_task_model,
     get_scheduled_task_run_model,
 )
@@ -14,15 +13,7 @@ from backend.app.admin.service.scheduled_task import ScheduledTaskService, Sched
 
 
 def init_scheduled_task_api(bp, db, models):
-    Admin = get_admin_model(models)
     service = ScheduledTaskService(db, get_scheduled_task_model(models), get_scheduled_task_run_model(models))
-
-    def has_permission(code):
-        username = session.get('username')
-        if not username:
-            return False
-        user = Admin.query.filter_by(username=username).first()
-        return bool(user and user.has_menu_code_access(code))
 
     def handle_service_error(error):
         body = {'error': error.message}
@@ -33,7 +24,7 @@ def init_scheduled_task_api(bp, db, models):
     @login_required
     def manage_scheduled_tasks():
         if request.method == 'GET':
-            if not has_permission('system_scheduled_tasks'):
+            if not has_menu_permission('system_scheduled_tasks'):
                 return jsonify({'error': '无权限查看定时任务列表'}), 403
 
             page = request.args.get('page', 1, type=int)
@@ -49,7 +40,7 @@ def init_scheduled_task_api(bp, db, models):
                 status=status,
             ))
 
-        if not has_permission('system_scheduled_tasks_add'):
+        if not has_menu_permission('system_scheduled_tasks_add'):
             return jsonify({'error': '无权限新增定时任务'}), 403
 
         try:
@@ -64,19 +55,19 @@ def init_scheduled_task_api(bp, db, models):
         task = service.crud.get_task_or_404(task_id)
 
         if request.method == 'GET':
-            if not has_permission('system_scheduled_tasks'):
+            if not has_menu_permission('system_scheduled_tasks'):
                 return jsonify({'error': '无权限查看定时任务'}), 403
             return jsonify(task.to_dict())
 
         if request.method == 'PUT':
-            if not has_permission('system_scheduled_tasks_edit'):
+            if not has_menu_permission('system_scheduled_tasks_edit'):
                 return jsonify({'error': '无权限编辑定时任务'}), 403
             try:
                 return jsonify(service.update_task(task, request.get_json() or {}))
             except ScheduledTaskServiceError as exc:
                 return handle_service_error(exc)
 
-        if not has_permission('system_scheduled_tasks_delete'):
+        if not has_menu_permission('system_scheduled_tasks_delete'):
             return jsonify({'error': '无权限删除定时任务'}), 403
 
         try:
@@ -87,7 +78,7 @@ def init_scheduled_task_api(bp, db, models):
     @bp.route('/api/admin/scheduled-tasks/<int:task_id>/run', methods=['POST'])
     @login_required
     def run_scheduled_task(task_id):
-        if not has_permission('system_scheduled_tasks_run'):
+        if not has_menu_permission('system_scheduled_tasks_run'):
             return jsonify({'error': '无权限执行定时任务'}), 403
 
         task = service.crud.get_task_or_404(task_id)
@@ -100,7 +91,7 @@ def init_scheduled_task_api(bp, db, models):
     @bp.route('/api/admin/scheduled-tasks/runs', methods=['GET'])
     @login_required
     def list_scheduled_task_runs():
-        if not has_permission('system_scheduled_tasks'):
+        if not has_menu_permission('system_scheduled_tasks'):
             return jsonify({'error': '无权限查看执行记录'}), 403
 
         page = request.args.get('page', 1, type=int)

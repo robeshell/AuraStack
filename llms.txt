@@ -21,6 +21,7 @@ Product managers provide only natural-language intent. Agents perform end-to-end
 - Database migrations: `backend/migrations/`
 - Engineering scripts: `backend/scripts/`
 - Shared capabilities: `backend/common/`
+- Permission helper baseline: `backend/common/auth.py` (`has_menu_permission` as default API permission check)
 
 ## Tech Stack
 

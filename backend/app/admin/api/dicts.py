@@ -1,24 +1,16 @@
 # -*- coding: utf-8 -*-
 """数据字典 API 层"""
 
-from flask import jsonify, request, session
+from flask import jsonify, request
 
-from backend.common.auth import login_required
-from backend.app.admin.model.dicts import get_admin_model, get_dict_item_model, get_dict_type_model
+from backend.common.auth import has_menu_permission, login_required
+from backend.app.admin.model.dicts import get_dict_item_model, get_dict_type_model
 from backend.app.admin.schema.dicts import parse_bool
 from backend.app.admin.service.dicts import DictsService, DictsServiceError
 
 
 def init_dicts_api(bp, db, models):
-    Admin = get_admin_model(models)
     service = DictsService(db, get_dict_type_model(models), get_dict_item_model(models))
-
-    def has_permission(code):
-        username = session.get('username')
-        if not username:
-            return False
-        user = Admin.query.filter_by(username=username).first()
-        return bool(user and user.has_menu_code_access(code))
 
     def handle_service_error(error):
         body = {'error': error.message}
@@ -38,7 +30,7 @@ def init_dicts_api(bp, db, models):
     @login_required
     def manage_dict_types():
         if request.method == 'GET':
-            if not has_permission('system_dicts'):
+            if not has_menu_permission('system_dicts'):
                 return jsonify({'error': '无权限查看数据字典'}), 403
 
             page = request.args.get('page', 1, type=int)
@@ -52,7 +44,7 @@ def init_dicts_api(bp, db, models):
                 is_active=is_active,
             ))
 
-        if not has_permission('system_dicts_add'):
+        if not has_menu_permission('system_dicts_add'):
             return jsonify({'error': '无权限新增数据字典'}), 403
 
         try:
@@ -67,13 +59,13 @@ def init_dicts_api(bp, db, models):
         item = service.crud.get_dict_type_or_404(dict_id)
 
         if request.method == 'GET':
-            if not has_permission('system_dicts'):
+            if not has_menu_permission('system_dicts'):
                 return jsonify({'error': '无权限查看数据字典'}), 403
             include_items = parse_bool(request.args.get('include_items')) is True
             return jsonify(service.get_dict_type(item, include_items=include_items))
 
         if request.method == 'PUT':
-            if not has_permission('system_dicts_edit'):
+            if not has_menu_permission('system_dicts_edit'):
                 return jsonify({'error': '无权限编辑数据字典'}), 403
 
             try:
@@ -81,7 +73,7 @@ def init_dicts_api(bp, db, models):
             except DictsServiceError as e:
                 return handle_service_error(e)
 
-        if not has_permission('system_dicts_delete'):
+        if not has_menu_permission('system_dicts_delete'):
             return jsonify({'error': '无权限删除数据字典'}), 403
 
         try:
@@ -95,14 +87,14 @@ def init_dicts_api(bp, db, models):
         dict_type = service.crud.get_dict_type_or_404(dict_id)
 
         if request.method == 'GET':
-            if not has_permission('system_dicts'):
+            if not has_menu_permission('system_dicts'):
                 return jsonify({'error': '无权限查看字典项'}), 403
 
             search = request.args.get('search', '').strip()
             is_active = parse_bool(request.args.get('is_active'))
             return jsonify(service.list_dict_items(dict_type, search=search, is_active=is_active))
 
-        if not has_permission('system_dicts_add'):
+        if not has_menu_permission('system_dicts_add'):
             return jsonify({'error': '无权限新增字典项'}), 403
 
         try:
@@ -115,7 +107,7 @@ def init_dicts_api(bp, db, models):
     @login_required
     def export_dict_items(dict_id):
         dict_type = service.crud.get_dict_type_or_404(dict_id)
-        if not has_permission('system_dicts'):
+        if not has_menu_permission('system_dicts'):
             return jsonify({'error': '无权限导出字典项'}), 403
         try:
             return service.export_dict_items(dict_type, request.args.get('file_type'))
@@ -126,7 +118,7 @@ def init_dicts_api(bp, db, models):
     @login_required
     def download_dict_items_template(dict_id):
         dict_type = service.crud.get_dict_type_or_404(dict_id)
-        if not has_permission('system_dicts'):
+        if not has_menu_permission('system_dicts'):
             return jsonify({'error': '无权限下载模板'}), 403
         try:
             return service.download_dict_items_template(dict_type, request.args.get('file_type'))
@@ -137,7 +129,7 @@ def init_dicts_api(bp, db, models):
     @login_required
     def import_dict_items(dict_id):
         dict_type = service.crud.get_dict_type_or_404(dict_id)
-        if not has_permission('system_dicts_edit'):
+        if not has_menu_permission('system_dicts_edit'):
             return jsonify({'error': '无权限导入字典项'}), 403
 
         try:
@@ -151,12 +143,12 @@ def init_dicts_api(bp, db, models):
         item = service.crud.get_dict_item_or_404(item_id)
 
         if request.method == 'GET':
-            if not has_permission('system_dicts'):
+            if not has_menu_permission('system_dicts'):
                 return jsonify({'error': '无权限查看字典项'}), 403
             return jsonify(service.get_dict_item(item))
 
         if request.method == 'PUT':
-            if not has_permission('system_dicts_edit'):
+            if not has_menu_permission('system_dicts_edit'):
                 return jsonify({'error': '无权限编辑字典项'}), 403
 
             try:
@@ -164,7 +156,7 @@ def init_dicts_api(bp, db, models):
             except DictsServiceError as e:
                 return handle_service_error(e)
 
-        if not has_permission('system_dicts_delete'):
+        if not has_menu_permission('system_dicts_delete'):
             return jsonify({'error': '无权限删除字典项'}), 403
 
         try:

@@ -1,23 +1,15 @@
 # -*- coding: utf-8 -*-
 """角色模块 API 层"""
 
-from flask import jsonify, request, session
+from flask import jsonify, request
 
-from backend.common.auth import login_required
-from backend.app.admin.model.roles import get_admin_model, get_menu_model, get_role_model
+from backend.common.auth import has_menu_permission, login_required
+from backend.app.admin.model.roles import get_menu_model, get_role_model
 from backend.app.admin.service.roles import RoleService, RoleServiceError
 
 
 def init_roles_api(bp, db, models):
-    Admin = get_admin_model(models)
     service = RoleService(db, get_role_model(models), get_menu_model(models))
-
-    def has_permission(code):
-        username = session.get('username')
-        if not username:
-            return False
-        user = Admin.query.filter_by(username=username).first()
-        return bool(user and user.has_menu_code_access(code))
 
     def handle_service_error(error):
         body = {'error': error.message}
@@ -28,11 +20,11 @@ def init_roles_api(bp, db, models):
     @login_required
     def manage_roles():
         if request.method == 'GET':
-            if not has_permission('system_roles'):
+            if not has_menu_permission('system_roles'):
                 return jsonify({'error': '无权限查看角色列表'}), 403
             return jsonify(service.list_roles())
 
-        if not has_permission('system_roles_add'):
+        if not has_menu_permission('system_roles_add'):
             return jsonify({'error': '无权限新增角色'}), 403
 
         try:
@@ -47,14 +39,14 @@ def init_roles_api(bp, db, models):
         role = service.crud.get_role_or_404(role_id)
 
         if request.method == 'DELETE':
-            if not has_permission('system_roles_delete'):
+            if not has_menu_permission('system_roles_delete'):
                 return jsonify({'error': '无权限删除角色'}), 403
             try:
                 return jsonify(service.delete_role(role))
             except RoleServiceError as e:
                 return handle_service_error(e)
 
-        if not has_permission('system_roles_edit'):
+        if not has_menu_permission('system_roles_edit'):
             return jsonify({'error': '无权限编辑角色'}), 403
         try:
             return jsonify(service.update_role(role, request.get_json() or {}))
@@ -64,7 +56,7 @@ def init_roles_api(bp, db, models):
     @bp.route('/api/admin/roles/export', methods=['POST'])
     @login_required
     def export_roles():
-        if not has_permission('system_roles'):
+        if not has_menu_permission('system_roles'):
             return jsonify({'error': '无权限导出角色'}), 403
 
         try:
@@ -75,7 +67,7 @@ def init_roles_api(bp, db, models):
     @bp.route('/api/admin/roles/template', methods=['GET'])
     @login_required
     def download_roles_template():
-        if not has_permission('system_roles'):
+        if not has_menu_permission('system_roles'):
             return jsonify({'error': '无权限下载角色导入模板'}), 403
 
         try:
@@ -86,7 +78,7 @@ def init_roles_api(bp, db, models):
     @bp.route('/api/admin/roles/import', methods=['POST'])
     @login_required
     def import_roles():
-        if not has_permission('system_roles_edit'):
+        if not has_menu_permission('system_roles_edit'):
             return jsonify({'error': '无权限导入角色'}), 403
 
         try:

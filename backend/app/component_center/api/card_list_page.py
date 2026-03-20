@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """卡片列表页 API 层"""
 
-from flask import jsonify, request, session
+from flask import jsonify, request
 
-from backend.common.auth import login_required
+from backend.common.auth import has_menu_permission, login_required
 from backend.app.component_center.model.card_list_page import (
-    get_admin_model,
     get_card_list_page_model,
 )
 from backend.app.component_center.schema.card_list_page import parse_bool
@@ -16,18 +15,10 @@ from backend.app.component_center.service.card_list_page import (
 
 
 def init_card_list_page_api(bp, db, models):
-    Admin = get_admin_model(models)
     service = CardListPageService(
         db,
         get_card_list_page_model(models),
     )
-
-    def has_permission(code):
-        username = session.get('username')
-        if not username:
-            return False
-        user = Admin.query.filter_by(username=username).first()
-        return bool(user and user.has_menu_code_access(code))
 
     def handle_service_error(error):
         body = {'error': error.message}
@@ -38,7 +29,7 @@ def init_card_list_page_api(bp, db, models):
     @login_required
     def manage_card_list_page_list():
         if request.method == 'GET':
-            if not has_permission('system_card_list_page'):
+            if not has_menu_permission('system_card_list_page'):
                 return jsonify({'error': '无权限查看卡片列表页数据'}), 403
 
             page = request.args.get('page', 1, type=int)
@@ -58,7 +49,7 @@ def init_card_list_page_api(bp, db, models):
                 status=status,
             ))
 
-        if not has_permission('system_card_list_page_add'):
+        if not has_menu_permission('system_card_list_page_add'):
             return jsonify({'error': '无权限新增记录'}), 403
 
         try:
@@ -73,19 +64,19 @@ def init_card_list_page_api(bp, db, models):
         item = service.crud.get_or_404(item_id)
 
         if request.method == 'GET':
-            if not has_permission('system_card_list_page'):
+            if not has_menu_permission('system_card_list_page'):
                 return jsonify({'error': '无权限查看记录详情'}), 403
             return jsonify(item.to_dict())
 
         if request.method == 'PUT':
-            if not has_permission('system_card_list_page_edit'):
+            if not has_menu_permission('system_card_list_page_edit'):
                 return jsonify({'error': '无权限编辑记录'}), 403
             try:
                 return jsonify(service.update_item(item, request.get_json() or {}))
             except CardListPageServiceError as e:
                 return handle_service_error(e)
 
-        if not has_permission('system_card_list_page_delete'):
+        if not has_menu_permission('system_card_list_page_delete'):
             return jsonify({'error': '无权限删除记录'}), 403
 
         try:
@@ -96,7 +87,7 @@ def init_card_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/card-list-page/export', methods=['GET', 'POST'])
     @login_required
     def export_card_list_page():
-        if not has_permission('system_card_list_page'):
+        if not has_menu_permission('system_card_list_page'):
             return jsonify({'error': '无权限导出数据'}), 403
 
         try:
@@ -108,7 +99,7 @@ def init_card_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/card-list-page/template', methods=['GET'])
     @login_required
     def download_card_list_page_template():
-        if not has_permission('system_card_list_page'):
+        if not has_menu_permission('system_card_list_page'):
             return jsonify({'error': '无权限下载导入模板'}), 403
 
         try:
@@ -119,7 +110,7 @@ def init_card_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/card-list-page/import', methods=['POST'])
     @login_required
     def import_card_list_page():
-        if not has_permission('system_card_list_page_edit'):
+        if not has_menu_permission('system_card_list_page_edit'):
             return jsonify({'error': '无权限导入数据'}), 403
 
         try:

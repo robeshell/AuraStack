@@ -26,6 +26,8 @@ class Config:
     # 定时任务调度
     ENABLE_TASK_SCHEDULER = os.environ.get('ENABLE_TASK_SCHEDULER', 'true')
     TASK_SCHEDULER_INTERVAL_SECONDS = int(os.environ.get('TASK_SCHEDULER_INTERVAL_SECONDS', '20'))
+    TASK_SCHEDULER_LEASE_SECONDS = int(os.environ.get('TASK_SCHEDULER_LEASE_SECONDS', '1800'))
+    RUN_SCHEDULER_IN_WEB = os.environ.get('RUN_SCHEDULER_IN_WEB', 'false')
 
 
 class DevelopmentConfig(Config):

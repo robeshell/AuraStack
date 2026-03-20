@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """看板页 API 层"""
 
-from flask import jsonify, request, session
+from flask import jsonify, request
 
-from backend.common.auth import login_required
+from backend.common.auth import has_menu_permission, login_required
 from backend.app.component_center.model.kanban_page import (
-    get_admin_model,
     get_kanban_board_model,
     get_kanban_card_model,
 )
@@ -16,19 +15,11 @@ from backend.app.component_center.service.kanban_page import (
 
 
 def init_kanban_page_api(bp, db, models):
-    Admin = get_admin_model(models)
     service = KanbanPageService(
         db,
         get_kanban_board_model(models),
         get_kanban_card_model(models),
     )
-
-    def has_permission(code):
-        username = session.get('username')
-        if not username:
-            return False
-        user = Admin.query.filter_by(username=username).first()
-        return bool(user and user.has_menu_code_access(code))
 
     def handle_error(error):
         body = {'error': error.message}
@@ -41,11 +32,11 @@ def init_kanban_page_api(bp, db, models):
     @login_required
     def kanban_boards():
         if request.method == 'GET':
-            if not has_permission('cc_admin_kanban_page'):
+            if not has_menu_permission('cc_admin_kanban_page'):
                 return jsonify({'error': '无权限'}), 403
             return jsonify(service.get_all_boards())
 
-        if not has_permission('cc_admin_kanban_add'):
+        if not has_menu_permission('cc_admin_kanban_add'):
             return jsonify({'error': '无权限新建列'}), 403
         try:
             payload, status_code = service.create_board(request.get_json() or {})
@@ -59,14 +50,14 @@ def init_kanban_page_api(bp, db, models):
         board = service.crud.get_board_or_404(board_id)
 
         if request.method == 'PUT':
-            if not has_permission('cc_admin_kanban_edit'):
+            if not has_menu_permission('cc_admin_kanban_edit'):
                 return jsonify({'error': '无权限编辑列'}), 403
             try:
                 return jsonify(service.update_board(board, request.get_json() or {}))
             except KanbanPageServiceError as e:
                 return handle_error(e)
 
-        if not has_permission('cc_admin_kanban_delete'):
+        if not has_menu_permission('cc_admin_kanban_delete'):
             return jsonify({'error': '无权限删除列'}), 403
         try:
             return jsonify(service.delete_board(board))
@@ -78,7 +69,7 @@ def init_kanban_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/kanban/cards/reorder', methods=['PUT'])
     @login_required
     def kanban_cards_reorder():
-        if not has_permission('cc_admin_kanban_edit'):
+        if not has_menu_permission('cc_admin_kanban_edit'):
             return jsonify({'error': '无权限'}), 403
         try:
             return jsonify(service.reorder_cards(request.get_json() or []))
@@ -88,7 +79,7 @@ def init_kanban_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/kanban/cards', methods=['POST'])
     @login_required
     def kanban_cards():
-        if not has_permission('cc_admin_kanban_add'):
+        if not has_menu_permission('cc_admin_kanban_add'):
             return jsonify({'error': '无权限新建卡片'}), 403
         try:
             payload, status_code = service.create_card(request.get_json() or {})
@@ -102,14 +93,14 @@ def init_kanban_page_api(bp, db, models):
         card = service.crud.get_card_or_404(card_id)
 
         if request.method == 'PUT':
-            if not has_permission('cc_admin_kanban_edit'):
+            if not has_menu_permission('cc_admin_kanban_edit'):
                 return jsonify({'error': '无权限编辑卡片'}), 403
             try:
                 return jsonify(service.update_card(card, request.get_json() or {}))
             except KanbanPageServiceError as e:
                 return handle_error(e)
 
-        if not has_permission('cc_admin_kanban_delete'):
+        if not has_menu_permission('cc_admin_kanban_delete'):
             return jsonify({'error': '无权限删除卡片'}), 403
         try:
             return jsonify(service.delete_card(card))

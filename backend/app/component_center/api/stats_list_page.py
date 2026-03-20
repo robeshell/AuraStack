@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """带统计的列表页 API 层"""
 
-from flask import jsonify, request, session
+from flask import jsonify, request
 
-from backend.common.auth import login_required
-from backend.app.component_center.model.stats_list_page import get_admin_model, get_stats_item_model
+from backend.common.auth import has_menu_permission, login_required
+from backend.app.component_center.model.stats_list_page import get_stats_item_model
 from backend.app.component_center.schema.stats_list_page import parse_bool
 from backend.app.component_center.service.stats_list_page import (
     StatsListPageService,
@@ -13,15 +13,7 @@ from backend.app.component_center.service.stats_list_page import (
 
 
 def init_stats_list_page_api(bp, db, models):
-    Admin = get_admin_model(models)
     service = StatsListPageService(db, get_stats_item_model(models))
-
-    def has_permission(code):
-        username = session.get('username')
-        if not username:
-            return False
-        user = Admin.query.filter_by(username=username).first()
-        return bool(user and user.has_menu_code_access(code))
 
     def handle_service_error(error):
         body = {'error': error.message}
@@ -31,7 +23,7 @@ def init_stats_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/stats-list-page/stats', methods=['GET'])
     @login_required
     def get_stats_list_page_stats():
-        if not has_permission('system_stats_list_page'):
+        if not has_menu_permission('system_stats_list_page'):
             return jsonify({'error': '无权限查看统计数据'}), 403
         return jsonify(service.get_stats())
 
@@ -39,7 +31,7 @@ def init_stats_list_page_api(bp, db, models):
     @login_required
     def manage_stats_list_page_list():
         if request.method == 'GET':
-            if not has_permission('system_stats_list_page'):
+            if not has_menu_permission('system_stats_list_page'):
                 return jsonify({'error': '无权限查看数据'}), 403
             page = request.args.get('page', 1, type=int)
             per_page = request.args.get('per_page', 20, type=int)
@@ -53,7 +45,7 @@ def init_stats_list_page_api(bp, db, models):
                 category=category, owner=owner, is_active=is_active, status=status,
             ))
 
-        if not has_permission('system_stats_list_page_add'):
+        if not has_menu_permission('system_stats_list_page_add'):
             return jsonify({'error': '无权限新增记录'}), 403
         try:
             payload, status_code = service.create_item(request.get_json() or {})
@@ -67,19 +59,19 @@ def init_stats_list_page_api(bp, db, models):
         item = service.crud.get_or_404(item_id)
 
         if request.method == 'GET':
-            if not has_permission('system_stats_list_page'):
+            if not has_menu_permission('system_stats_list_page'):
                 return jsonify({'error': '无权限查看详情'}), 403
             return jsonify(item.to_dict())
 
         if request.method == 'PUT':
-            if not has_permission('system_stats_list_page_edit'):
+            if not has_menu_permission('system_stats_list_page_edit'):
                 return jsonify({'error': '无权限编辑记录'}), 403
             try:
                 return jsonify(service.update_item(item, request.get_json() or {}))
             except StatsListPageServiceError as e:
                 return handle_service_error(e)
 
-        if not has_permission('system_stats_list_page_delete'):
+        if not has_menu_permission('system_stats_list_page_delete'):
             return jsonify({'error': '无权限删除记录'}), 403
         try:
             return jsonify(service.delete_item(item))
@@ -89,7 +81,7 @@ def init_stats_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/stats-list-page/export', methods=['GET', 'POST'])
     @login_required
     def export_stats_list_page():
-        if not has_permission('system_stats_list_page'):
+        if not has_menu_permission('system_stats_list_page'):
             return jsonify({'error': '无权限导出数据'}), 403
         try:
             payload = request.args if request.method == 'GET' else (request.get_json() or {})
@@ -100,7 +92,7 @@ def init_stats_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/stats-list-page/template', methods=['GET'])
     @login_required
     def download_stats_list_page_template():
-        if not has_permission('system_stats_list_page'):
+        if not has_menu_permission('system_stats_list_page'):
             return jsonify({'error': '无权限下载模板'}), 403
         try:
             return service.download_template(request.args.get('file_type'))
@@ -110,7 +102,7 @@ def init_stats_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/stats-list-page/import', methods=['POST'])
     @login_required
     def import_stats_list_page():
-        if not has_permission('system_stats_list_page_edit'):
+        if not has_menu_permission('system_stats_list_page_edit'):
             return jsonify({'error': '无权限导入数据'}), 403
         try:
             return jsonify(service.import_items(request.files.get('file')))

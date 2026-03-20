@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """树形列表页 API 层"""
 
-from flask import jsonify, request, session
+from flask import jsonify, request
 
-from backend.common.auth import login_required
+from backend.common.auth import has_menu_permission, login_required
 from backend.app.component_center.model.tree_list_page import (
-    get_admin_model,
     get_tree_list_page_model,
 )
 from backend.app.component_center.schema.tree_list_page import parse_bool
@@ -16,15 +15,7 @@ from backend.app.component_center.service.tree_list_page import (
 
 
 def init_tree_list_page_api(bp, db, models):
-    Admin = get_admin_model(models)
     service = TreeListPageService(db, get_tree_list_page_model(models))
-
-    def has_permission(code):
-        username = session.get('username')
-        if not username:
-            return False
-        user = Admin.query.filter_by(username=username).first()
-        return bool(user and user.has_menu_code_access(code))
 
     def handle_service_error(error):
         body = {'error': error.message}
@@ -35,7 +26,7 @@ def init_tree_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/tree-list-page/tree', methods=['GET'])
     @login_required
     def get_tree_list_page_tree():
-        if not has_permission('system_tree_list_page'):
+        if not has_menu_permission('system_tree_list_page'):
             return jsonify({'error': '无权限查看树形数据'}), 403
         search = (request.args.get('search') or '').strip()
         node_type = (request.args.get('node_type') or '').strip()
@@ -49,7 +40,7 @@ def init_tree_list_page_api(bp, db, models):
     @login_required
     def manage_tree_list_page_list():
         if request.method == 'GET':
-            if not has_permission('system_tree_list_page'):
+            if not has_menu_permission('system_tree_list_page'):
                 return jsonify({'error': '无权限查看树形列表页数据'}), 403
 
             page = request.args.get('page', 1, type=int)
@@ -79,7 +70,7 @@ def init_tree_list_page_api(bp, db, models):
                 parent_id=parent_id,
             ))
 
-        if not has_permission('system_tree_list_page_add'):
+        if not has_menu_permission('system_tree_list_page_add'):
             return jsonify({'error': '无权限新增节点'}), 403
 
         try:
@@ -94,19 +85,19 @@ def init_tree_list_page_api(bp, db, models):
         item = service.crud.get_or_404(item_id)
 
         if request.method == 'GET':
-            if not has_permission('system_tree_list_page'):
+            if not has_menu_permission('system_tree_list_page'):
                 return jsonify({'error': '无权限查看节点详情'}), 403
             return jsonify(item.to_dict())
 
         if request.method == 'PUT':
-            if not has_permission('system_tree_list_page_edit'):
+            if not has_menu_permission('system_tree_list_page_edit'):
                 return jsonify({'error': '无权限编辑节点'}), 403
             try:
                 return jsonify(service.update_item(item, request.get_json() or {}))
             except TreeListPageServiceError as e:
                 return handle_service_error(e)
 
-        if not has_permission('system_tree_list_page_delete'):
+        if not has_menu_permission('system_tree_list_page_delete'):
             return jsonify({'error': '无权限删除节点'}), 403
 
         try:
@@ -117,7 +108,7 @@ def init_tree_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/tree-list-page/export', methods=['GET', 'POST'])
     @login_required
     def export_tree_list_page():
-        if not has_permission('system_tree_list_page'):
+        if not has_menu_permission('system_tree_list_page'):
             return jsonify({'error': '无权限导出数据'}), 403
         try:
             payload = request.args if request.method == 'GET' else (request.get_json() or {})
@@ -128,7 +119,7 @@ def init_tree_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/tree-list-page/template', methods=['GET'])
     @login_required
     def download_tree_list_page_template():
-        if not has_permission('system_tree_list_page'):
+        if not has_menu_permission('system_tree_list_page'):
             return jsonify({'error': '无权限下载导入模板'}), 403
         try:
             return service.download_template(request.args.get('file_type'))
@@ -138,7 +129,7 @@ def init_tree_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/tree-list-page/import', methods=['POST'])
     @login_required
     def import_tree_list_page():
-        if not has_permission('system_tree_list_page_edit'):
+        if not has_menu_permission('system_tree_list_page_edit'):
             return jsonify({'error': '无权限导入数据'}), 403
         try:
             return jsonify(service.import_items(request.files.get('file')))

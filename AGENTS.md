@@ -33,6 +33,8 @@ When user says "做XX功能", the agent must complete this chain:
    - Implement under layered module structure: `backend/app/<domain>/{api,service,crud,model,schema}`.
    - Register module routes in `backend/app/<domain>/api/router.py`.
    - If introducing a new first-level domain, wire it in `backend/app/router.py` and `backend/app/__init__.py`.
+   - In API layer, use unified permission helpers from `backend/common/auth.py` (`has_menu_permission` / `has_any_menu_permission` / `menu_permission_required`).
+   - Do not define per-file local `has_permission` in API modules.
    - Update model entities and migration when schema changes.
 3. **Frontend implementation**
    - Add/update page component under `frontend/src/modules/**/pages/**/index.jsx`.

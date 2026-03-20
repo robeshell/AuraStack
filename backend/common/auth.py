@@ -2,7 +2,7 @@
 """认证与权限装饰器"""
 
 from functools import wraps
-from flask import jsonify, redirect, request, session, url_for
+from flask import current_app, jsonify, redirect, request, session, url_for
 
 
 def login_required(f):
@@ -18,6 +18,38 @@ def login_required(f):
     return decorated_function
 
 
+def _get_admin_model():
+    db = current_app.extensions.get('sqlalchemy')
+    if not db:
+        return None
+
+    models = db.Model.registry._class_registry
+    for _, model in models.items():
+        if hasattr(model, '__tablename__') and model.__tablename__ == 'admin_users':
+            return model
+    return None
+
+
+def get_current_admin_user():
+    username = session.get('username')
+    if not username:
+        return None
+
+    admin_model = _get_admin_model()
+    if not admin_model:
+        return None
+    return admin_model.query.filter_by(username=username).first()
+
+
+def has_menu_permission(menu_code):
+    user = get_current_admin_user()
+    return bool(user and user.has_menu_code_access(menu_code))
+
+
+def has_any_menu_permission(*menu_codes):
+    return any(has_menu_permission(code) for code in menu_codes if code)
+
+
 def menu_permission_required(menu_code):
     """菜单权限验证装饰器（基于菜单 code）"""
 
@@ -29,27 +61,15 @@ def menu_permission_required(menu_code):
                     return jsonify({'error': '未登录'}), 401
                 return redirect(url_for('admin.login_page'))
 
-            username = session.get('username')
-            if not username:
+            if not session.get('username'):
                 if request.path.startswith('/api/'):
                     return jsonify({'error': '会话异常'}), 401
                 return redirect(url_for('admin.login_page'))
 
-            from flask import current_app
-
-            db = current_app.extensions['sqlalchemy']
-            models = db.Model.registry._class_registry
-
-            Admin = None
-            for _, model in models.items():
-                if hasattr(model, '__tablename__') and model.__tablename__ == 'admin_users':
-                    Admin = model
-                    break
-
-            if not Admin:
+            user = get_current_admin_user()
+            if user is None and _get_admin_model() is None:
                 return jsonify({'error': '系统错误'}), 500
 
-            user = Admin.query.filter_by(username=username).first()
             if not user:
                 if request.path.startswith('/api/'):
                     return jsonify({'error': '用户不存在'}), 404

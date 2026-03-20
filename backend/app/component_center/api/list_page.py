@@ -3,9 +3,8 @@
 
 from flask import jsonify, request, send_from_directory, session
 
-from backend.common.auth import login_required
+from backend.common.auth import has_any_menu_permission, has_menu_permission, login_required
 from backend.app.component_center.model.list_page import (
-    get_admin_model,
     get_list_page_model,
     get_list_page_version_model,
 )
@@ -17,19 +16,11 @@ from backend.app.component_center.service.list_page import (
 
 
 def init_list_page_api(bp, db, models):
-    Admin = get_admin_model(models)
     service = ListPageService(
         db,
         get_list_page_model(models),
         get_list_page_version_model(models),
     )
-
-    def has_permission(code):
-        username = session.get('username')
-        if not username:
-            return False
-        user = Admin.query.filter_by(username=username).first()
-        return bool(user and user.has_menu_code_access(code))
 
     def handle_service_error(error):
         body = {'error': error.message}
@@ -40,7 +31,7 @@ def init_list_page_api(bp, db, models):
     @login_required
     def manage_list_page_list():
         if request.method == 'GET':
-            if not has_permission('system_list_page'):
+            if not has_menu_permission('system_list_page'):
                 return jsonify({'error': '无权限查看列表页数据'}), 403
 
             page = request.args.get('page', 1, type=int)
@@ -60,7 +51,7 @@ def init_list_page_api(bp, db, models):
                 status=status,
             ))
 
-        if not has_permission('system_list_page_add'):
+        if not has_menu_permission('system_list_page_add'):
             return jsonify({'error': '无权限新增记录'}), 403
 
         try:
@@ -75,19 +66,19 @@ def init_list_page_api(bp, db, models):
         item = service.crud.get_or_404(item_id)
 
         if request.method == 'GET':
-            if not has_permission('system_list_page'):
+            if not has_menu_permission('system_list_page'):
                 return jsonify({'error': '无权限查看记录详情'}), 403
             return jsonify(item.to_dict())
 
         if request.method == 'PUT':
-            if not has_permission('system_list_page_edit'):
+            if not has_menu_permission('system_list_page_edit'):
                 return jsonify({'error': '无权限编辑记录'}), 403
             try:
                 return jsonify(service.update_item(item, request.get_json() or {}))
             except ListPageServiceError as e:
                 return handle_service_error(e)
 
-        if not has_permission('system_list_page_delete'):
+        if not has_menu_permission('system_list_page_delete'):
             return jsonify({'error': '无权限删除记录'}), 403
 
         try:
@@ -98,7 +89,7 @@ def init_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/list-page/export', methods=['GET', 'POST'])
     @login_required
     def export_list_page():
-        if not has_permission('system_list_page'):
+        if not has_menu_permission('system_list_page'):
             return jsonify({'error': '无权限导出数据'}), 403
 
         try:
@@ -110,7 +101,7 @@ def init_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/list-page/template', methods=['GET'])
     @login_required
     def download_list_page_template():
-        if not has_permission('system_list_page'):
+        if not has_menu_permission('system_list_page'):
             return jsonify({'error': '无权限下载导入模板'}), 403
 
         try:
@@ -121,7 +112,7 @@ def init_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/list-page/import', methods=['POST'])
     @login_required
     def import_list_page():
-        if not has_permission('system_list_page_edit'):
+        if not has_menu_permission('system_list_page_edit'):
             return jsonify({'error': '无权限导入数据'}), 403
 
         try:
@@ -132,7 +123,7 @@ def init_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/list-page/upload-image', methods=['POST'])
     @login_required
     def upload_list_page_image():
-        if not (has_permission('system_list_page_add') or has_permission('system_list_page_edit')):
+        if not has_any_menu_permission('system_list_page_add', 'system_list_page_edit'):
             return jsonify({'error': '无权限上传图片'}), 403
 
         try:
@@ -143,7 +134,7 @@ def init_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/list-page/image/<path:filename>', methods=['GET'])
     @login_required
     def list_page_image(filename):
-        if not has_permission('system_list_page'):
+        if not has_menu_permission('system_list_page'):
             return jsonify({'error': '无权限查看图片'}), 403
 
         try:
@@ -155,7 +146,7 @@ def init_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/list-page/upload-file', methods=['POST'])
     @login_required
     def upload_list_page_file():
-        if not (has_permission('system_list_page_add') or has_permission('system_list_page_edit')):
+        if not has_any_menu_permission('system_list_page_add', 'system_list_page_edit'):
             return jsonify({'error': '无权限上传附件'}), 403
 
         try:
@@ -166,7 +157,7 @@ def init_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/list-page/file/<path:filename>', methods=['GET'])
     @login_required
     def list_page_file(filename):
-        if not has_permission('system_list_page'):
+        if not has_menu_permission('system_list_page'):
             return jsonify({'error': '无权限查看附件'}), 403
 
         try:
@@ -178,7 +169,7 @@ def init_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/list-page/run-preview', methods=['POST'])
     @login_required
     def run_list_page_preview():
-        if not has_permission('system_list_page'):
+        if not has_menu_permission('system_list_page'):
             return jsonify({'error': '无权限执行数据预览'}), 403
         try:
             return jsonify(service.run_preview(request.get_json() or {}))
@@ -188,7 +179,7 @@ def init_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/list-page/<int:item_id>/versions', methods=['GET'])
     @login_required
     def list_list_page_versions(item_id):
-        if not has_permission('system_list_page'):
+        if not has_menu_permission('system_list_page'):
             return jsonify({'error': '无权限查看版本历史'}), 403
         item = service.crud.get_or_404(item_id)
         page = request.args.get('page', 1, type=int)
@@ -198,7 +189,7 @@ def init_list_page_api(bp, db, models):
     @bp.route('/api/admin/component-center/list-page/<int:item_id>/versions/<int:version_id>/rollback', methods=['POST'])
     @login_required
     def rollback_list_page_version(item_id, version_id):
-        if not has_permission('system_list_page_edit'):
+        if not has_menu_permission('system_list_page_edit'):
             return jsonify({'error': '无权限回滚版本'}), 403
         item = service.crud.get_or_404(item_id)
         version_item = service.crud.get_version_or_404(version_id)
