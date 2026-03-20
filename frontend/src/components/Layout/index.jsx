@@ -13,6 +13,17 @@ import {
   IconIdCard,
   IconFile,
   IconMenu,
+  IconBranch,
+  IconCode,
+  IconHistogram,
+  IconDesktop,
+  IconPieChartStroked,
+  IconBox,
+  IconActivity,
+  IconSend,
+  IconEdit2,
+  IconLayers,
+  IconKanban,
 } from '@douyinfe/semi-icons'
 import { useAuth } from '../../context/AuthContext'
 import { changePassword } from '../../modules/admin/api/auth'
@@ -32,15 +43,27 @@ const MENU_ICON_MAP = {
 }
 
 const MENU_ICON_NAME_MAP = {
-  IconHome: <IconHome />,
-  IconUser: <IconUser />,
-  IconList: <IconList />,
-  IconArticle: <IconArticle />,
-  IconGridSquare: <IconGridSquare />,
-  IconSetting: <IconSetting />,
-  IconApps: <IconApps />,
-  IconIdCard: <IconIdCard />,
-  IconFile: <IconFile />,
+  IconHome:            <IconHome />,
+  IconUser:            <IconUser />,
+  IconList:            <IconList />,
+  IconArticle:         <IconArticle />,
+  IconGridSquare:      <IconGridSquare />,
+  IconSetting:         <IconSetting />,
+  IconApps:            <IconApps />,
+  IconIdCard:          <IconIdCard />,
+  IconFile:            <IconFile />,
+  IconBranch:          <IconBranch />,
+  IconCode:            <IconCode />,
+  IconHistogram:       <IconHistogram />,
+  // 组件示例中心分类图标
+  IconDesktop:         <IconDesktop />,         // 管理系统
+  IconPieChartStroked: <IconPieChartStroked />, // 数据可视化
+  IconBox:             <IconBox />,             // 3D / 创意
+  IconActivity:        <IconActivity />,        // 交互体验
+  IconSend:            <IconSend />,            // AI 应用
+  IconEdit2:           <IconEdit2 />,           // 编辑器 / 低代码
+  IconLayers:          <IconLayers />,          // 工程 / 工具类
+  IconKanban:          <IconKanban />,          // 看板页
 }
 
 function buildNavItems(menus) {
@@ -115,6 +138,19 @@ export default function Layout() {
     return map
   }, [flatMenus])
 
+  // code → parent code 映射，用于向上追溯祖先
+  const codeParentMap = useMemo(() => {
+    const idToCode = {}
+    flatMenus.forEach((m) => { idToCode[m.id] = m.code })
+    const map = {}
+    flatMenus.forEach((m) => {
+      if (m.parent_id && idToCode[m.parent_id]) {
+        map[m.code] = idToCode[m.parent_id]
+      }
+    })
+    return map
+  }, [flatMenus])
+
   const currentKey = useMemo(() => {
     const matched = flatMenus
       .filter((menu) => typeof menu.path === 'string' && menu.path.length > 0)
@@ -122,6 +158,28 @@ export default function Layout() {
       .find((menu) => location.pathname === menu.path || location.pathname.startsWith(`${menu.path}/`))
     return matched?.code
   }, [flatMenus, location.pathname])
+
+  // 当前选中菜单的所有祖先 code（用于自动展开侧边栏分组）
+  const ancestorKeys = useMemo(() => {
+    if (!currentKey) return []
+    const keys = []
+    let key = currentKey
+    while (codeParentMap[key]) {
+      key = codeParentMap[key]
+      keys.push(key)
+    }
+    return keys
+  }, [currentKey, codeParentMap])
+
+  // 受控的展开 key 列表：路由切换时合并新祖先，不折叠已手动展开的分组
+  const [openKeys, setOpenKeys] = useState([])
+  useEffect(() => {
+    if (ancestorKeys.length === 0) return
+    setOpenKeys((prev) => {
+      const merged = new Set([...prev, ...ancestorKeys])
+      return Array.from(merged)
+    })
+  }, [ancestorKeys])
 
   const navItems = buildNavItems(menus)
 
@@ -184,8 +242,11 @@ export default function Layout() {
               setCollapsed(next)
             }
           }}
+          limitIndent={false}
           items={navItems}
           selectedKeys={currentKey ? [currentKey] : []}
+          openKeys={openKeys}
+          onOpenChange={({ openKeys: next }) => setOpenKeys(next)}
           onSelect={handleSelect}
           header={{
             logo: (

@@ -33,6 +33,7 @@ export default function ImageUploadField({
   fileList = [],
   onFileListChange,
   uploadApi,
+  action = '',
   limit = 9,
   accept = '.jpg,.jpeg,.png,.gif,.webp',
   maxSizeMB = 5,
@@ -85,6 +86,7 @@ export default function ImageUploadField({
 
   return (
     <Upload
+      action={action}
       customRequest={handleCustomRequest}
       beforeUpload={handleBeforeUpload}
       fileList={fileList}

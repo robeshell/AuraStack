@@ -338,7 +338,7 @@ export default function Menus() {
           <Form.Input
             field="component"
             label="组件"
-            placeholder="例如：admin/users、data_management/query_management"
+            placeholder="例如：admin/users、component_center/list_page"
           />
           <Form.Input field="icon" label="图标" placeholder="图标名称" />
           <Form.InputNumber field="sort_order" label="排序" min={0} />

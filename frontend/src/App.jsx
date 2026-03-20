@@ -85,7 +85,7 @@ function RouteNotConfigured({ path, component }) {
         菜单路径 <Typography.Text code>{path}</Typography.Text> 对应的组件
         <Typography.Text code style={{ marginLeft: 6 }}>{component || '(空)'}</Typography.Text>
         暂未在前端注册。组件值需与 `frontend/src/modules/**/pages/**/index.jsx` 对齐，
-        例如 `admin/users`、`data_management/query_management`。
+        例如 `admin/users`、`component_center/list_page`。
       </Typography.Paragraph>
     </div>
   )

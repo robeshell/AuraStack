@@ -43,11 +43,13 @@ def verify_module(module: str, errors: list[str], warnings: list[str]) -> None:
         ROOT / "backend" / "app" / module / "api" / f"{singular}.py",
         ROOT / "backend" / "app" / singular / "api" / f"{singular}.py",
     ]
-    # 一级模块是 data_management，query_management 属于该大模块
-    if module in {"query_management", "query-management"}:
+    # 一级模块是 component_center，list_page/query_management 属于该大模块
+    if module in {"list_page", "list-page", "query_management", "query-management"}:
         backend_candidates.extend([
-            ROOT / "backend" / "app" / "data_management" / "api" / "query_management.py",
-            ROOT / "backend" / "app" / "data_management" / "api" / "query-management.py",
+            ROOT / "backend" / "app" / "component_center" / "api" / "list_page.py",
+            ROOT / "backend" / "app" / "component_center" / "api" / "list-page.py",
+            ROOT / "backend" / "app" / "component_center" / "api" / "query_management.py",
+            ROOT / "backend" / "app" / "component_center" / "api" / "query-management.py",
         ])
     if module in {"scheduled_tasks", "scheduled-task", "scheduled-tasks"}:
         backend_candidates.extend([
@@ -58,14 +60,14 @@ def verify_module(module: str, errors: list[str], warnings: list[str]) -> None:
     frontend_api_candidates = [
         ROOT / "frontend" / "src" / "modules" / "admin" / "api" / f"{module}.js",
         ROOT / "frontend" / "src" / "modules" / "admin" / "api" / f"{singular}.js",
-        ROOT / "frontend" / "src" / "modules" / "data_management" / "api" / f"{module}.js",
-        ROOT / "frontend" / "src" / "modules" / "data_management" / "api" / f"{singular}.js",
+        ROOT / "frontend" / "src" / "modules" / "component_center" / "api" / f"{module}.js",
+        ROOT / "frontend" / "src" / "modules" / "component_center" / "api" / f"{singular}.js",
     ]
     frontend_page_candidates = [
         ROOT / "frontend" / "src" / "modules" / "admin" / "pages" / module / "index.jsx",
         ROOT / "frontend" / "src" / "modules" / "admin" / "pages" / singular / "index.jsx",
-        ROOT / "frontend" / "src" / "modules" / "data_management" / "pages" / module / "index.jsx",
-        ROOT / "frontend" / "src" / "modules" / "data_management" / "pages" / singular / "index.jsx",
+        ROOT / "frontend" / "src" / "modules" / "component_center" / "pages" / module / "index.jsx",
+        ROOT / "frontend" / "src" / "modules" / "component_center" / "pages" / singular / "index.jsx",
     ]
 
     if not any(path.exists() for path in backend_candidates):
@@ -87,7 +89,7 @@ def verify_module(module: str, errors: list[str], warnings: list[str]) -> None:
     router_files = [
         ROOT / "backend" / "app" / "router.py",
         ROOT / "backend" / "app" / "admin" / "api" / "router.py",
-        ROOT / "backend" / "app" / "data_management" / "api" / "router.py",
+        ROOT / "backend" / "app" / "component_center" / "api" / "router.py",
     ]
     combined_router_text = ""
     for file in router_files:

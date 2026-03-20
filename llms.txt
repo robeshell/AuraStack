@@ -16,7 +16,7 @@ Product managers provide only natural-language intent. Agents perform end-to-end
 
 - App bootstrap: `backend/app/__init__.py`
 - Global route assembler: `backend/app/router.py`
-- Domain modules: `backend/app/admin/`, `backend/app/data_management/`
+- Domain modules: `backend/app/admin/`, `backend/app/component_center/`
 - Per-domain layers: `api/`, `service/`, `crud/`, `model/`, `schema/`
 - Database migrations: `backend/migrations/`
 - Engineering scripts: `backend/scripts/`

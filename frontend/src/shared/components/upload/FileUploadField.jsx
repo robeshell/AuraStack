@@ -20,6 +20,7 @@ export default function FileUploadField({
   fileList = [],
   onFileListChange,
   uploadApi,
+  action = '',
   limit = 20,
   accept = '.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.md,.zip,.rar,.7z,.json,.ppt,.pptx',
   maxSizeMB = 20,
@@ -72,6 +73,7 @@ export default function FileUploadField({
 
   return (
     <Upload
+      action={action}
       customRequest={handleCustomRequest}
       beforeUpload={handleBeforeUpload}
       fileList={fileList}

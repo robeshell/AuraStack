@@ -4,7 +4,7 @@
 from flask import Blueprint
 
 from backend.app.admin import register_admin_routes
-from backend.app.data_management import register_data_management_routes
+from backend.app.component_center import register_component_center_routes
 
 
 bp = Blueprint('admin', __name__)
@@ -12,5 +12,5 @@ bp = Blueprint('admin', __name__)
 
 def init_app_routes(db, models):
     register_admin_routes(bp, db, models)
-    register_data_management_routes(bp, db, models)
+    register_component_center_routes(bp, db, models)
     return bp
